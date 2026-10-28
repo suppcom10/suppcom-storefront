@@ -40,7 +40,7 @@ export default function ProductActions({
   const [isAdding, setIsAdding] = useState(false)
   const countryCode = useParams().countryCode as string
 
-  // If there is only 1 variant, preselect the options
+  // Si solo hay 1 variante, preseleccionar opciones
   useEffect(() => {
     if (product.variants?.length === 1) {
       const variantOptions = optionsAsKeymap(product.variants[0].options)
@@ -59,7 +59,7 @@ export default function ProductActions({
     })
   }, [product.variants, options])
 
-  // update the options when a variant is selected
+  // Actualizar opciones al seleccionar variante
   const setOptionValue = (optionId: string, value: string) => {
     setOptions((prev) => ({
       ...prev,
@@ -67,7 +67,7 @@ export default function ProductActions({
     }))
   }
 
-  //check if the selected options produce a valid variant
+  // Verificar si las opciones seleccionadas corresponden a una variante válida
   const isValidVariant = useMemo(() => {
     return product.variants?.some((v) => {
       const variantOptions = optionsAsKeymap(v.options)
@@ -92,19 +92,16 @@ export default function ProductActions({
     router.replace(pathname + "?" + params.toString())
   }, [selectedVariant, isValidVariant])
 
-  // check if the selected variant is in stock
+  // Comprobar inventario disponible
   const inStock = useMemo(() => {
-    // If we don't manage inventory, we can always add to cart
     if (selectedVariant && !selectedVariant.manage_inventory) {
       return true
     }
 
-    // If we allow back orders on the variant, we can add to cart
     if (selectedVariant?.allow_backorder) {
       return true
     }
 
-    // If there is inventory available, we can add to cart
     if (
       selectedVariant?.manage_inventory &&
       (selectedVariant?.inventory_quantity || 0) > 0
@@ -112,15 +109,13 @@ export default function ProductActions({
       return true
     }
 
-    // Otherwise, we can't add to cart
     return false
   }, [selectedVariant])
 
   const actionsRef = useRef<HTMLDivElement>(null)
-
   const inView = useIntersection(actionsRef, "0px")
 
-  // add the selected variant to the cart
+  // Añadir al carrito
   const handleAddToCart = async () => {
     if (!selectedVariant?.id) return null
 
@@ -134,6 +129,13 @@ export default function ProductActions({
 
     setIsAdding(false)
   }
+
+  // Preparar mensaje para WhatsApp
+  const whatsappNumber = "519XXXXXXXX" // Reemplaza con los 9 dígitos de SuppCom
+  const variantTitle = selectedVariant?.title && selectedVariant.title !== "Default variant" 
+    ? ` (${selectedVariant.title})` 
+    : ""
+  const whatsappMessage = `Hola SuppCom, deseo consultar disponibilidad y comprar: ${product.title}${variantTitle}`
 
   return (
     <>
@@ -177,31 +179,29 @@ export default function ProductActions({
           data-testid="add-product-button"
         >
           {!selectedVariant && !options
-            ? "Select variant"
+            ? "Seleccionar opción"
             : !inStock || !isValidVariant
-            ? "Out of stock"
-            : "Add to cart"}
+            ? "Agotado"
+            : "Añadir al carrito"}
         </Button>
 
-<a
-  href={`https://wa.me/51941325886?text=${encodeURIComponent(
-    `Hola SuppCom, deseo consultar disponibilidad y comprar: ${product.title} (PEN ${product.variants?.[0]?.calculated_price?.calculated_amount || ''})`
-  )}`}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="w-full mt-3 flex items-center justify-center gap-2 py-3 px-4 rounded-md bg-[#25D366] hover:bg-[#20ba5a] text-white font-semibold text-sm transition-colors shadow-sm"
->
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    className="w-5 h-5"
-  >
-    <path d="M12.004 2C6.479 2 2 6.479 2 12.004c0 1.954.563 3.778 1.536 5.32L2.05 22l4.821-1.455c1.488.887 3.23 1.459 5.133 1.459 5.525 0 10.004-4.479 10.004-10.004C22.008 6.479 17.529 2 12.004 2zm.004 18.257c-1.637 0-3.153-.483-4.436-1.314l-.318-.207-2.868.866.865-2.802-.216-.333a8.212 8.212 0 0 1-1.278-4.463c0-4.557 3.708-8.265 8.251-8.265 4.542 0 8.25 3.708 8.25 8.265 0 4.557-3.708 8.25-8.25 8.25zm4.526-6.179c-.248-.124-1.467-.724-1.695-.807-.228-.083-.394-.124-.56.124-.166.248-.642.807-.787.973-.145.166-.29.187-.538.062a6.792 6.792 0 0 1-1.996-1.231 7.485 7.485 0 0 1-1.381-1.721c-.145-.248-.016-.382.108-.506.111-.111.248-.29.373-.435.124-.145.166-.248.249-.414.083-.166.041-.311-.021-.435-.062-.124-.56-1.349-.767-1.848-.202-.486-.407-.42-.56-.428l-.477-.008c-.166 0-.435.062-.663.311-.228.248-.87 0.85-.87 2.073s.891 2.404 1.016 2.57c.124.166 1.753 2.677 4.248 3.754.593.256 1.056.409 1.417.524.596.19 1.138.163 1.567.099.479-.072 1.467-.6 1.674-1.18.207-.58.207-1.077.145-1.18-.062-.104-.228-.166-.476-.29z"/>
-  </svg>
-  Consultar por WhatsApp
-</a>
-        
+        <a
+          href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full mt-2 flex items-center justify-center gap-2 py-3 px-4 rounded-md bg-[#25D366] hover:bg-[#20ba5a] text-white font-semibold text-sm transition-colors shadow-sm"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="w-5 h-5"
+          >
+            <path d="M12.004 2C6.479 2 2 6.479 2 12.004c0 1.954.563 3.778 1.536 5.32L2.05 22l4.821-1.455c1.488.887 3.23 1.459 5.133 1.459 5.525 0 10.004-4.479 10.004-10.004C22.008 6.479 17.529 2 12.004 2zm.004 18.257c-1.637 0-3.153-.483-4.436-1.314l-.318-.207-2.868.866.865-2.802-.216-.333a8.212 8.212 0 0 1-1.278-4.463c0-4.557 3.708-8.265 8.251-8.265 4.542 0 8.25 3.708 8.25 8.265 0 4.557-3.708 8.25-8.25 8.25zm4.526-6.179c-.248-.124-1.467-.724-1.695-.807-.228-.083-.394-.124-.56.124-.166.248-.642.807-.787.973-.145.166-.29.187-.538.062a6.792 6.792 0 0 1-1.996-1.231 7.485 7.485 0 0 1-1.381-1.721c-.145-.248-.016-.382.108-.506.111-.111.248-.29.373-.435.124-.145.166-.248.249-.414.083-.166.041-.311-.021-.435-.062-.124-.56-1.349-.767-1.848-.202-.486-.407-.42-.56-.428l-.477-.008c-.166 0-.435.062-.663.311-.228.248-.87 0.85-.87 2.073s.891 2.404 1.016 2.57c.124.166 1.753 2.677 4.248 3.754.593.256 1.056.409 1.417.524.596.19 1.138.163 1.567.099.479-.072 1.467-.6 1.674-1.18.207-.58.207-1.077.145-1.18-.062-.104-.228-.166-.476-.29z"/>
+          </svg>
+          Consultar por WhatsApp
+        </a>
+
         <MobileActions
           product={product}
           variant={selectedVariant}
