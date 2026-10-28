@@ -184,7 +184,7 @@ export default function ProductActions({
         </Button>
 
 <a
-  href={`https://wa.me/519XXXXXXXX?text=${encodeURIComponent(
+  href={`https://wa.me/51941325886?text=${encodeURIComponent(
     `Hola SuppCom, deseo consultar disponibilidad y comprar: ${product.title} (PEN ${product.variants?.[0]?.calculated_price?.calculated_amount || ''})`
   )}`}
   target="_blank"
