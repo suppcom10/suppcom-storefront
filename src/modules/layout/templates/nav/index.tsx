@@ -7,6 +7,7 @@ import { StoreRegion } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CartButton from "@modules/layout/components/cart-button"
 import SideMenu from "@modules/layout/components/side-menu"
+import Image from "next/image"
 
 export default async function Nav() {
   const [regions, locales, currentLocale] = await Promise.all([
@@ -27,12 +28,19 @@ export default async function Nav() {
 
           <div className="flex items-center h-full">
             <LocalizedClientLink
-              href="/"
-              className="txt-compact-xlarge-plus hover:text-ui-fg-base uppercase"
-              data-testid="nav-store-link"
-            >
-              SuppCom-Tienda de informática
-            </LocalizedClientLink>
+  href="/"
+  className="flex items-center justify-center hover:opacity-90 transition-opacity"
+  data-testid="nav-store-link"
+>
+  <Image
+    src="/logo.png"
+    alt="SuppCom"
+    width={160}
+    height={45}
+    className="h-9 w-auto object-contain"
+    priority
+  />
+</LocalizedClientLink>
           </div>
 
           <div className="flex items-center gap-x-6 h-full flex-1 basis-0 justify-end">
