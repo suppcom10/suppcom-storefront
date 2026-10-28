@@ -12,10 +12,10 @@ import { HttpTypes } from "@medusajs/types"
 import { Locale } from "@lib/data/locales"
 
 const SideMenuItems = {
-  Home: "/",
-  Store: "/store",
-  Account: "/account",
-  Cart: "/cart",
+  Home: "Inicio/",
+  Store: "/Tienda",
+  Account: "/Cuenta",
+  Cart: "/carrito de compras",
 }
 
 type SideMenuProps = {
@@ -126,7 +126,7 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                         />
                       </div>
                       <Text className="flex justify-between txt-compact-small">
-                        © {new Date().getFullYear()} Medusa Store. All rights
+                        © {new Date().getFullYear()} SuppCom - Store. All rights
                         reserved.
                       </Text>
                     </div>
