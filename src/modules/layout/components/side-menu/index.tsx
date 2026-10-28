@@ -126,8 +126,7 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                         />
                       </div>
                       <Text className="flex justify-between txt-compact-small">
-                        © {new Date().getFullYear()} SuppCom - Store. All rights
-                        reserved.
+                        © {new Date().getFullYear()} SuppCom - Store. Todos los derechos reservados.
                       </Text>
                     </div>
                   </div>
