@@ -1,5 +1,5 @@
 
-import { getProductsListWithSort } from "@lib/data/products"
+import { listProductsWithSort } from "@lib/data/products"
 import ProductPreview from "@modules/products/components/product-preview"
 import { Pagination } from "@modules/store/components/pagination"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
@@ -22,7 +22,7 @@ export default async function PaginatedProducts({
   categoryId,
   productsIds,
   countryCode,
-  query,
+  q,
 }: {
   sortBy?: SortOptions
   page: number
@@ -30,7 +30,7 @@ export default async function PaginatedProducts({
   categoryId?: string
   productsIds?: string[]
   countryCode: string
-  query?: string
+  q?: string
 }) {
   const queryParams: PaginatedProductsParams = {
     limit: PRODUCT_LIMIT,
@@ -52,16 +52,15 @@ export default async function PaginatedProducts({
     queryParams.order = "created_at"
   }
 
-  // Buscar productos por la palabra introducida.
-  const searchQuery = query?.trim()
+  const searchTerm = q?.trim()
 
-  if (searchQuery) {
-    queryParams.q = searchQuery
+  if (searchTerm) {
+    queryParams.q = searchTerm
   }
 
   const {
     response: { products, count },
-  } = await getProductsListWithSort({
+  } = await listProductsWithSort({
     page,
     queryParams,
     sortBy,
@@ -88,8 +87,8 @@ export default async function PaginatedProducts({
         </ul>
       ) : (
         <p className="py-10 text-center text-ui-fg-subtle">
-          {searchQuery
-            ? `No encontramos productos para "${searchQuery}".`
+          {searchTerm
+            ? `No encontramos productos para "${searchTerm}".`
             : "No hay productos disponibles."}
         </p>
       )}
