@@ -4,7 +4,6 @@ import { Popover, Transition } from "@headlessui/react"
 import { ArrowRightMini, XMark } from "@medusajs/icons"
 import { Text, clx, useToggleState } from "@medusajs/ui"
 import { Fragment } from "react"
-import Image from "next/image"
 
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CountrySelect from "../country-select"
@@ -104,9 +103,9 @@ const SideMenu = ({ regions }: SideMenuProps) => {
               <div className="relative flex h-full">
                 <Popover.Button
                   data-testid="nav-menu-button"
-                  className="relative h-full flex items-center gap-1.5 transition-all ease-out duration-200 focus:outline-none hover:text-red-600 text-neutral-800 font-semibold text-sm"
+                  className="relative h-full flex items-center gap-2 transition-all ease-out duration-200 focus:outline-none hover:text-[#E31837] text-neutral-800 font-semibold text-sm"
                 >
-                  <svg className="w-5 h-5 text-neutral-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                   Menú
@@ -123,48 +122,46 @@ const SideMenu = ({ regions }: SideMenuProps) => {
                 leaveFrom="opacity-100 translate-x-0"
                 leaveTo="opacity-0 -translate-x-4"
               >
-                <Popover.Panel className="flex flex-col fixed w-full sm:w-80 md:w-96 h-screen z-50 inset-y-0 left-0 bg-[#141517] text-white shadow-2xl overflow-y-auto">
+                <Popover.Panel className="flex flex-col fixed w-full sm:w-80 md:w-96 h-screen z-50 inset-y-0 left-0 bg-white text-neutral-900 border-r border-neutral-200 shadow-2xl overflow-y-auto">
                   <div className="flex flex-col h-full justify-between p-6">
                     <div>
                       {/* Cabecera del Drawer */}
-                      <div className="flex items-center justify-between pb-5 border-b border-neutral-800">
-                        <div className="bg-white px-2.5 py-1 rounded-md">
-                          <img src="/logo.png" alt="SuppCom" className="h-6 w-auto object-contain" />
-                        </div>
+                      <div className="flex items-center justify-between pb-4 border-b border-neutral-100">
+                        <img src="/logo.png" alt="SuppCom" className="h-7 w-auto object-contain" />
                         <button
                           onClick={close}
-                          className="p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
+                          className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-800 hover:bg-neutral-100 transition-colors"
                         >
                           <XMark />
                         </button>
                       </div>
 
                       {/* Enlaces Principales */}
-                      <div className="py-4 border-b border-neutral-800">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                      <div className="py-4 border-b border-neutral-100">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
                           Navegación
                         </span>
                         <div className="mt-2 flex flex-col gap-1">
                           <LocalizedClientLink
                             href="/"
                             onClick={close}
-                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold text-neutral-200 hover:text-white hover:bg-neutral-800/60 transition-colors"
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold text-neutral-700 hover:text-neutral-900 hover:bg-neutral-50 transition-colors"
                           >
                             Inicio
                           </LocalizedClientLink>
                           <LocalizedClientLink
                             href="/store"
                             onClick={close}
-                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold text-white bg-red-600/20 text-red-400 hover:bg-red-600/30 transition-colors"
+                            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold text-[#E31837] bg-red-50 hover:bg-red-100 transition-colors"
                           >
                             Ver Todo el Catálogo
                           </LocalizedClientLink>
                         </div>
                       </div>
 
-                      {/* Lista de Categorías de Hardware */}
+                      {/* Categorías de Hardware */}
                       <div className="pt-4">
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
                           Categorías de Hardware
                         </span>
                         <ul className="mt-2 flex flex-col gap-1">
@@ -173,9 +170,9 @@ const SideMenu = ({ regions }: SideMenuProps) => {
                               <LocalizedClientLink
                                 href={cat.href}
                                 onClick={close}
-                                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-neutral-300 hover:text-white hover:bg-neutral-800/80 transition-colors group"
+                                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-neutral-600 hover:text-[#E31837] hover:bg-red-50/60 transition-colors group"
                               >
-                                <span className="text-neutral-400 group-hover:text-red-500 transition-colors">
+                                <span className="text-neutral-400 group-hover:text-[#E31837] transition-colors">
                                   {cat.icon}
                                 </span>
                                 <span>{cat.name}</span>
@@ -186,20 +183,20 @@ const SideMenu = ({ regions }: SideMenuProps) => {
                       </div>
                     </div>
 
-                    {/* Footer del Menú */}
-                    <div className="pt-6 border-t border-neutral-800 flex flex-col gap-3 mt-6">
-                      <div className="flex items-center justify-between text-xs text-neutral-400">
-                        <LocalizedClientLink href="/account" onClick={close} className="hover:text-white">
+                    {/* Footer del Drawer */}
+                    <div className="pt-5 border-t border-neutral-100 flex flex-col gap-3 mt-6">
+                      <div className="flex items-center justify-between text-xs text-neutral-500 font-medium">
+                        <LocalizedClientLink href="/account" onClick={close} className="hover:text-neutral-900">
                           Mi Cuenta
                         </LocalizedClientLink>
                         <span>•</span>
-                        <LocalizedClientLink href="/cart" onClick={close} className="hover:text-white">
+                        <LocalizedClientLink href="/cart" onClick={close} className="hover:text-neutral-900">
                           Carrito de Compra
                         </LocalizedClientLink>
                       </div>
 
                       <div
-                        className="flex justify-between items-center text-xs text-neutral-400 pt-2 border-t border-neutral-800/60"
+                        className="flex justify-between items-center text-xs text-neutral-500 pt-2 border-t border-neutral-100"
                         onMouseEnter={countryToggleState.open}
                         onMouseLeave={countryToggleState.close}
                       >
@@ -218,7 +215,7 @@ const SideMenu = ({ regions }: SideMenuProps) => {
                         />
                       </div>
 
-                      <Text className="text-[11px] text-neutral-500 text-center">
+                      <Text className="text-[11px] text-neutral-400 text-center">
                         © {new Date().getFullYear()} SuppCom. Todos los derechos reservados.
                       </Text>
                     </div>
