@@ -6,6 +6,7 @@ import { StoreRegion } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import CartButton from "@modules/layout/components/cart-button"
 import SideMenu from "@modules/layout/components/side-menu"
+import SearchBar from "@modules/layout/components/search-bar"
 
 export default async function Nav() {
   const [regions, locales, currentLocale] = await Promise.all([
@@ -58,6 +59,10 @@ export default async function Nav() {
             <SideMenu regions={regions} locales={locales} currentLocale={currentLocale} />
           </div>
 
+          <div className="hidden md:flex flex-1 justify-center max-w-md mx-auto">
+            <SearchBar />
+          </div>
+          
           {/* Centro: Logo SuppCom */}
           <div className="flex items-center justify-center h-full">
             <LocalizedClientLink
