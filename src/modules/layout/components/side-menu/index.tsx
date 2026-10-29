@@ -1,12 +1,11 @@
 "use client"
 
 import { Popover, Transition } from "@headlessui/react"
-import { ArrowRightMini, XMark } from "@medusajs/icons"
-import { Text, clx, useToggleState } from "@medusajs/ui"
+import { XMark } from "@medusajs/icons"
+import { Text } from "@medusajs/ui"
 import { Fragment } from "react"
 
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
-import CountrySelect from "../country-select"
 import { HttpTypes } from "@medusajs/types"
 import { Locale } from "@lib/data/locales"
 
@@ -91,9 +90,7 @@ type SideMenuProps = {
   currentLocale: string | null
 }
 
-const SideMenu = ({ regions }: SideMenuProps) => {
-  const countryToggleState = useToggleState()
-
+const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
   return (
     <div className="h-full">
       <div className="flex items-center h-full">
@@ -195,24 +192,14 @@ const SideMenu = ({ regions }: SideMenuProps) => {
                         </LocalizedClientLink>
                       </div>
 
-                      <div
-                        className="flex justify-between items-center text-xs text-neutral-500 pt-2 border-t border-neutral-100"
-                        onMouseEnter={countryToggleState.open}
-                        onMouseLeave={countryToggleState.close}
-                      >
-                        <span>Envíos a:</span>
-                        {regions && (
-                          <CountrySelect
-                            toggleState={countryToggleState}
-                            regions={regions}
-                          />
-                        )}
-                        <ArrowRightMini
-                          className={clx(
-                            "transition-transform duration-150",
-                            countryToggleState.state && "-rotate-90"
-                          )}
-                        />
+                      {/* Información de Envíos Nacionales */}
+                      <div className="flex items-center justify-between text-xs text-neutral-600 font-medium pt-3 border-t border-neutral-100">
+                        <span className="flex items-center gap-1.5">
+                          <span>🇵🇪</span> Envíos a todo el Perú
+                        </span>
+                        <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded">
+                          Lima & Provincias
+                        </span>
                       </div>
 
                       <Text className="text-[11px] text-neutral-400 text-center">
