@@ -1,5 +1,4 @@
 import { Metadata } from "next"
-
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 import StoreTemplate from "@modules/store/templates"
 
@@ -8,27 +7,29 @@ export const metadata: Metadata = {
   description: "Explora todos los productos de tecnología y componentes disponibles.",
 }
 
-type Params = {
-  searchParams: Promise<{
-    sortBy?: SortOptions
-    page?: string
-    q?: string
-  }>
-  params: Promise<{
-    countryCode: string
-  }>
+type Props = {
+  params: Promise<{ countryCode: string }> | { countryCode: string }
+  searchParams:
+    | Promise<{ sortBy?: SortOptions; page?: string; q?: string }>
+    | { sortBy?: SortOptions; page?: string; q?: string }
 }
 
-export default async function StorePage(props: Params) {
-  const params = await props.params
-  const searchParams = await props.searchParams
-  const { sortBy, page, q } = searchParams
+export default async function StorePage(props: Props) {
+  // Manejo seguro tanto para Promise como objeto resuelto
+  const resolvedParams = props.params instanceof Promise ? await props.params : props.params
+  const resolvedSearchParams =
+    props.searchParams instanceof Promise ? await props.searchParams : props.searchParams
+
+  const countryCode = resolvedParams?.countryCode || "pe"
+  const sortBy = resolvedSearchParams?.sortBy
+  const page = resolvedSearchParams?.page
+  const q = resolvedSearchParams?.q
 
   return (
     <StoreTemplate
       sortBy={sortBy}
       page={page}
-      countryCode={params.countryCode}
+      countryCode={countryCode}
       q={q}
     />
   )
