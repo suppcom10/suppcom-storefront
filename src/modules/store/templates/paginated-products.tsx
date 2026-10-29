@@ -5,14 +5,6 @@ import { SortOptions } from "@modules/store/components/refinement-list/sort-prod
 
 const PRODUCT_LIMIT = 12
 
-type PaginatedProductsParams = {
-  limit: number
-  collection_id?: string[]
-  category_id?: string[]
-  id?: string[]
-  order?: string
-}
-
 export default async function PaginatedProducts({
   sortBy,
   page,
@@ -30,8 +22,13 @@ export default async function PaginatedProducts({
   countryCode: string
   q?: string
 }) {
-  const queryParams: PaginatedProductsParams = {
+  const queryParams: Record<string, any> = {
     limit: PRODUCT_LIMIT,
+  }
+
+  // Delegar el término a la consulta de Medusa
+  if (q && q.trim()) {
+    queryParams["q"] = q.trim()
   }
 
   if (collectionId) {
@@ -67,10 +64,10 @@ export default async function PaginatedProducts({
     console.error("Error al obtener productos:", error)
   }
 
-  // Filtrado por término de búsqueda si existe q
-  if (q && q.trim()) {
+  // Si Medusa devuelve la lista sin filtrar por q, aplicar filtro secundario
+  if (q && q.trim() && products.length > 0) {
     const term = q.trim().toLowerCase()
-    products = products.filter((product) => {
+    const filtered = products.filter((product) => {
       const title = (product.title || "").toLowerCase()
       const description = (product.description || "").toLowerCase()
       const handle = (product.handle || "").toLowerCase()
@@ -79,12 +76,14 @@ export default async function PaginatedProducts({
         title.includes(term) ||
         description.includes(term) ||
         handle.includes(term) ||
-        (term.includes("lenov") && title.includes("lenovo")) ||
-        (term.includes("rtx") && title.includes("rtx")) ||
-        (term.includes("and") && title.includes("amd"))
+        (term.includes("lenov") && title.includes("lenovo"))
       )
     })
-    count = products.length
+
+    if (filtered.length > 0) {
+      products = filtered
+      count = filtered.length
+    }
   }
 
   const totalPages = Math.ceil(count / PRODUCT_LIMIT)
@@ -93,10 +92,10 @@ export default async function PaginatedProducts({
     return (
       <div className="py-16 text-center text-neutral-500">
         <p className="text-base font-semibold text-neutral-800">
-          No se encontraron productos para {q ? `"${q}"` : "esta categoría"}.
+          No se encontraron productos para {q ? `"${q}"` : "esta categoría"}[cite: 26].
         </p>
         <p className="text-xs text-neutral-400 mt-1">
-          Intenta con otro término o explora las categorías del catálogo.
+          Intenta con otro término o explora las categorías del catálogo[cite: 26].
         </p>
       </div>
     )
