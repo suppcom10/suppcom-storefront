@@ -2,7 +2,6 @@ import { Metadata } from "next"
 import { Inter, Fredoka } from "next/font/google"
 import { getBaseURL } from "@lib/util/env"
 import "styles/globals.css"
-import WhatsAppButton from "@modules/common/components/whatsapp-button"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -34,11 +33,35 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout(props: { children: React.ReactNode }) {
+  const phone = "51941325886" // Pon aquí los 9 dígitos de tu WhatsApp de SuppCom
+  const message = encodeURIComponent(
+    "¡Hola SuppCom! Deseo realizar una consulta sobre disponibilidad y cotizaciones."
+  )
+
   return (
     <html lang="es" data-mode="light" className={`${inter.variable} ${fredoka.variable}`}>
-      <body className={`${inter.className} bg-white text-neutral-900 antialiased`}>
+      <body className={`${inter.className} bg-white text-neutral-900 antialiased relative`}>
         <main className="relative">{props.children}</main>
-        <WhatsAppButton />
+
+        {/* Botón Flotante Global de WhatsApp */}
+        <a
+          href={`https://wa.me/${phone}?text=${message}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Contacto por WhatsApp"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-[#25D366] hover:bg-[#20ba5a] text-white px-4 py-3 rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-200 group"
+        >
+          <svg
+            className="w-6 h-6 fill-current"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path d="M12.004 2C6.479 2 2 6.479 2 12.004c0 1.954.563 3.778 1.536 5.32L2.05 22l4.821-1.455c1.488.887 3.23 1.459 5.133 1.459 5.525 0 10.004-4.479 10.004-10.004C22.008 6.479 17.529 2 12.004 2zm.004 18.257c-1.637 0-3.153-.483-4.436-1.314l-.318-.207-2.868.866.865-2.802-.216-.333a8.212 8.212 0 0 1-1.278-4.463c0-4.557 3.708-8.265 8.251-8.265 4.542 0 8.25 3.708 8.25 8.265 0 4.557-3.708 8.25-8.25 8.25zm4.526-6.179c-.248-.124-1.467-.724-1.695-.807-.228-.083-.394-.124-.56.124-.166.248-.642.807-.787.973-.145.166-.29.187-.538.062a6.792 6.792 0 0 1-1.996-1.231 7.485 7.485 0 0 1-1.381-1.721c-.145-.248-.016-.382.108-.506.111-.111.248-.29.373-.435.124-.145.166-.248.249-.414.083-.166.041-.311-.021-.435-.062-.124-.56-1.349-.767-1.848-.202-.486-.407-.42-.56-.428l-.477-.008c-.166 0-.435.062-.663.311-.228.248-.87 0.85-.87 2.073s.891 2.404 1.016 2.57c.124.166 1.753 2.677 4.248 3.754.593.256 1.056.409 1.417.524.596.19 1.138.163 1.567.099.479-.072 1.467-.6 1.674-1.18.207-.58.207-1.077.145-1.18-.062-.104-.228-.166-.476-.29z" />
+          </svg>
+          <span className="hidden sm:inline text-xs font-bold tracking-wide">
+            ¿Cotizamos por WhatsApp?
+          </span>
+        </a>
       </body>
     </html>
   )
