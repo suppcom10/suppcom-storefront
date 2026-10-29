@@ -1,5 +1,4 @@
-import { listProductsWithSort } from "@lib/data/products"
-import { getRegion } from "@lib/data/regions"
+import { getProductsListWithSort } from "@lib/data/products"
 import ProductPreview from "@modules/products/components/product-preview"
 import { Pagination } from "@modules/store/components/pagination"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
@@ -21,6 +20,7 @@ export default async function PaginatedProducts({
   categoryId,
   productsIds,
   countryCode,
+  q,
 }: {
   sortBy?: SortOptions
   page: number
@@ -28,9 +28,10 @@ export default async function PaginatedProducts({
   categoryId?: string
   productsIds?: string[]
   countryCode: string
+  q?: string
 }) {
   const queryParams: PaginatedProductsParams = {
-    limit: 12,
+    limit: 100, // Traemos el lote para poder filtrar localmente si hay búsqueda
   }
 
   if (collectionId) {
@@ -49,22 +50,46 @@ export default async function PaginatedProducts({
     queryParams["order"] = "created_at"
   }
 
-  const region = await getRegion(countryCode)
-
-  if (!region) {
-    return null
-  }
-
   let {
     response: { products, count },
-  } = await listProductsWithSort({
+  } = await getProductsListWithSort({
     page,
     queryParams,
     sortBy,
     countryCode,
   })
 
+  // FILTRO INTELIGENTE: Si el usuario buscó algo por la barra
+  if (q && q.trim()) {
+    const term = q.trim().toLowerCase()
+    products = products.filter((product) => {
+      const title = (product.title || "").toLowerCase()
+      const description = (product.description || "").toLowerCase()
+      const handle = (product.handle || "").toLowerCase()
+
+      // Coincidencia directa o typo común
+      return (
+        title.includes(term) ||
+        description.includes(term) ||
+        handle.includes(term) ||
+        (term.includes("lenov") && title.includes("lenovo")) ||
+        (term.includes("rtx") && title.includes("rtx")) ||
+        (term.includes("and") && title.includes("amd"))
+      )
+    })
+    count = products.length
+  }
+
   const totalPages = Math.ceil(count / PRODUCT_LIMIT)
+
+  if (products.length === 0) {
+    return (
+      <div className="py-16 text-center text-neutral-500">
+        <p className="text-base font-medium">No se encontraron productos para tu búsqueda.</p>
+        <p className="text-xs text-neutral-400 mt-1">Intenta con otro término o revisa las categorías.</p>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -75,7 +100,7 @@ export default async function PaginatedProducts({
         {products.map((p) => {
           return (
             <li key={p.id}>
-              <ProductPreview product={p} region={region} />
+              <ProductPreview product={p} countryCode={countryCode} />
             </li>
           )
         })}
