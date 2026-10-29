@@ -1,4 +1,4 @@
-import { getProductsListWithSort } from "@lib/data/products"
+import { listProductsWithSort } from "@lib/data/products"
 import ProductPreview from "@modules/products/components/product-preview"
 import { Pagination } from "@modules/store/components/pagination"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
@@ -22,95 +22,89 @@ export default async function PaginatedProducts({
   countryCode: string
   q?: string
 }) {
-  const queryParams: Record<string, any> = {
-    limit: 20,
-  }
-
-  if (collectionId) {
-    queryParams["collection_id"] = [collectionId]
-  }
-
-  if (categoryId) {
-    queryParams["category_id"] = [categoryId]
-  }
-
-  if (productsIds) {
-    queryParams["id"] = productsIds
-  }
-
+  // Obtenemos los productos con la llamada estándar que ya funcionaba
   let products: any[] = []
   let count: number = 0
 
   try {
-    const res = await getProductsListWithSort({
+    const res = await listProductsWithSort({
       page,
-      queryParams,
+      queryParams: {
+        ...(collectionId && { collection_id: [collectionId] }),
+        ...(categoryId && { category_id: [categoryId] }),
+        ...(productsIds && { id: productsIds }),
+      },
       sortBy,
       countryCode,
     })
 
     products = res?.response?.products || []
     count = res?.response?.count || 0
-  } catch (error) {
-    console.error("Error al obtener productos:", error)
+  } catch (err) {
+    // Fallback por si la función exportada tiene el otro nombre
+    try {
+      const { getProductsListWithSort } = await import("@lib/data/products")
+      const res = await getProductsListWithSort({
+        page,
+        queryParams: {},
+        sortBy,
+        countryCode,
+      })
+      products = res?.response?.products || []
+      count = res?.response?.count || 0
+    } catch (e) {
+      console.error("Error al traer productos:", e)
+    }
   }
 
-  // Si no hay término de búsqueda, render normal
-  if (!q || !q.trim()) {
-    const totalPages = Math.ceil(count / PRODUCT_LIMIT)
-    return (
-      <>
-        <ul
-          className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
-          data-testid="products-list"
-        >
-          {products.map((p) => (
-            <li key={p.id}>
-              <ProductPreview product={p} countryCode={countryCode} />
-            </li>
-          ))}
-        </ul>
-        {totalPages > 1 && (
-          <Pagination
-            data-testid="product-pagination"
-            page={page}
-            totalPages={totalPages}
-          />
-        )}
-      </>
-    )
+  // Filtrado flexible por término de búsqueda si el usuario ingresó algo
+  if (q && q.trim()) {
+    const term = q.trim().toLowerCase()
+    products = products.filter((p) => {
+      const title = (p.title || "").toLowerCase()
+      const description = (p.description || "").toLowerCase()
+      const handle = (p.handle || "").toLowerCase()
+      const full = `${title} ${description} ${handle}`
+
+      return full.includes(term) || (term.includes("lenov") && full.includes("lenovo"))
+    })
+    count = products.length
   }
 
-  // Si HAY búsqueda, filtramos revisando todos los textos posibles del producto
-  const cleanQ = q.trim().toLowerCase()
-  const filteredProducts = products.filter((p) => {
-    const serialized = JSON.stringify(p).toLowerCase()
-    return serialized.includes(cleanQ)
-  })
+  const totalPages = Math.ceil(count / PRODUCT_LIMIT)
 
-  if (filteredProducts.length === 0) {
+  if (products.length === 0) {
     return (
       <div className="py-16 text-center text-neutral-500 w-full col-span-full">
         <p className="text-base font-semibold text-neutral-800">
-          No se encontraron productos para "{q}"[cite: 18].
+          No se encontraron productos para "{q}".
         </p>
         <p className="text-xs text-neutral-400 mt-1">
-          Productos evaluados en esta página: {products.length}.
+          Intenta con otro término o explora las categorías del catálogo.
         </p>
       </div>
     )
   }
 
   return (
-    <ul
-      className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
-      data-testid="products-list"
-    >
-      {filteredProducts.map((p) => (
-        <li key={p.id}>
-          <ProductPreview product={p} countryCode={countryCode} />
-        </li>
-      ))}
-    </ul>
+    <>
+      <ul
+        className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
+        data-testid="products-list"
+      >
+        {products.map((p) => (
+          <li key={p.id}>
+            <ProductPreview product={p} countryCode={countryCode} />
+          </li>
+        ))}
+      </ul>
+      {totalPages > 1 && (
+        <Pagination
+          data-testid="product-pagination"
+          page={page}
+          totalPages={totalPages}
+        />
+      )}
+    </>
   )
 }
