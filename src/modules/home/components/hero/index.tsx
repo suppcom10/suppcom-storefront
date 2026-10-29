@@ -20,14 +20,11 @@ const Hero = () => {
           </Heading>
         </span>
         <a
-          href="https://github.com/medusajs/nextjs-starter-medusa"
-          target="_blank"
-        >
-          <Button variant="secondary">
-            View on GitHub
-            <Github />
-          </Button>
-        </a>
+  href="/pe/store"
+  className="inline-flex items-center justify-center px-6 py-3 text-sm font-semibold text-white bg-[#E31837] hover:bg-[#c4132e] rounded-md transition-colors shadow-sm"
+>
+  Ver Catálogo de Hardware
+</a>
       </div>
     </div>
   )
