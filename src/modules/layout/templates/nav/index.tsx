@@ -51,23 +51,17 @@ export default async function Nav() {
         </div>
       </div>
 
-      {/* Header Principal con Menú, Logo y Carrito */}
+      {/* Header Principal */}
       <header className="relative h-16 mx-auto border-b bg-white/95 backdrop-blur-md border-neutral-200">
-        <nav className="content-container flex items-center justify-between w-full h-full px-4 max-w-7xl mx-auto">
-          {/* Lado izquierdo: Botón Menú */}
-          <div className="flex-1 basis-0 h-full flex items-center">
-            <SideMenu regions={regions} locales={locales} currentLocale={currentLocale} />
-          </div>
-
-          <div className="hidden md:flex flex-1 justify-center max-w-md mx-auto">
-            <SearchBar />
-          </div>
+        <nav className="content-container flex items-center justify-between w-full h-full px-4 max-w-7xl mx-auto gap-4">
           
-          {/* Centro: Logo SuppCom */}
-          <div className="flex items-center justify-center h-full">
+          {/* Lado izquierdo: Botón Menú + Logo */}
+          <div className="flex items-center gap-4 shrink-0">
+            <SideMenu regions={regions} locales={locales} currentLocale={currentLocale} />
+            
             <LocalizedClientLink
               href="/"
-              className="flex items-center justify-center hover:opacity-90 transition-opacity"
+              className="flex items-center hover:opacity-90 transition-opacity"
               data-testid="nav-store-link"
             >
               <img
@@ -78,9 +72,14 @@ export default async function Nav() {
             </LocalizedClientLink>
           </div>
 
-          {/* Lado derecho: Cuenta y Carrito */}
-          <div className="flex items-center gap-x-5 h-full flex-1 basis-0 justify-end">
-            <div className="hidden sm:flex items-center gap-x-5 h-full text-xs font-semibold text-neutral-700">
+          {/* Centro: Barra de Búsqueda amplia */}
+          <div className="hidden md:flex flex-1 justify-center max-w-lg mx-auto">
+            <SearchBar />
+          </div>
+
+          {/* Lado derecho: Mi Cuenta y Carrito */}
+          <div className="flex items-center gap-x-5 shrink-0 justify-end">
+            <div className="hidden sm:flex items-center text-xs font-semibold text-neutral-700">
               <LocalizedClientLink
                 className="hover:text-[#E31837] transition-colors"
                 href="/account"
@@ -104,6 +103,7 @@ export default async function Nav() {
               <CartButton />
             </Suspense>
           </div>
+
         </nav>
       </header>
     </div>
