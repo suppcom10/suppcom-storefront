@@ -30,7 +30,6 @@ export default async function PaginatedProducts({
   countryCode: string
   q?: string
 }) {
-  // Límite seguro admitido por el backend de Medusa v2
   const queryParams: PaginatedProductsParams = {
     limit: PRODUCT_LIMIT,
   }
@@ -51,7 +50,6 @@ export default async function PaginatedProducts({
     queryParams["order"] = "created_at"
   }
 
-  // Llamada protegida contra caídas de la API
   let products: any[] = []
   let count: number = 0
 
@@ -69,7 +67,7 @@ export default async function PaginatedProducts({
     console.error("Error al obtener productos:", error)
   }
 
-  // FILTRO INTELIGENTE: Si el usuario buscó por la barra superior
+  // Filtrado por término de búsqueda si existe q
   if (q && q.trim()) {
     const term = q.trim().toLowerCase()
     products = products.filter((product) => {
@@ -94,4 +92,35 @@ export default async function PaginatedProducts({
   if (products.length === 0) {
     return (
       <div className="py-16 text-center text-neutral-500">
-        <p className="text-
+        <p className="text-base font-semibold text-neutral-800">
+          No se encontraron productos para {q ? `"${q}"` : "esta categoría"}.
+        </p>
+        <p className="text-xs text-neutral-400 mt-1">
+          Intenta con otro término o explora las categorías del catálogo.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <ul
+        className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
+        data-testid="products-list"
+      >
+        {products.map((p) => (
+          <li key={p.id}>
+            <ProductPreview product={p} countryCode={countryCode} />
+          </li>
+        ))}
+      </ul>
+      {totalPages > 1 && (
+        <Pagination
+          data-testid="product-pagination"
+          page={page}
+          totalPages={totalPages}
+        />
+      )}
+    </>
+  )
+}
