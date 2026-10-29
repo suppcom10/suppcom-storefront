@@ -1,6 +1,6 @@
 "use client"
 
-import { Popover, PopoverPanel, Transition } from "@headlessui/react"
+import { Popover, Transition } from "@headlessui/react"
 import { ArrowRightMini, XMark } from "@medusajs/icons"
 import { Text, clx, useToggleState } from "@medusajs/ui"
 import { Fragment } from "react"
@@ -14,7 +14,7 @@ import { Locale } from "@lib/data/locales"
 const SideMenuItems = {
   Inicio: "/",
   Tienda: "/store",
-  Mi cuenta: "/account",
+  "Mi Cuenta": "/account",
   Carrito: "/cart",
 }
 
@@ -37,47 +37,44 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
               <div className="relative flex h-full">
                 <Popover.Button
                   data-testid="nav-menu-button"
-                  className="relative h-full flex items-center transition-all ease-out duration-200 focus:outline-none hover:text-ui-fg-base"
+                  className="relative h-full flex items-center transition-all ease-out duration-200 focus:outline-none hover:text-ui-fg-base text-neutral-700 font-medium"
                 >
-                  Menu
+                  Menú
                 </Popover.Button>
               </div>
-
-              {open && (
-                <div
-                  className="fixed inset-0 z-[50] bg-black/0 pointer-events-auto"
-                  onClick={close}
-                  data-testid="side-menu-backdrop"
-                />
-              )}
 
               <Transition
                 show={open}
                 as={Fragment}
                 enter="transition ease-out duration-150"
                 enterFrom="opacity-0"
-                enterTo="opacity-100 backdrop-blur-2xl"
+                enterTo="opacity-100"
                 leave="transition ease-in duration-150"
-                leaveFrom="opacity-100 backdrop-blur-2xl"
+                leaveFrom="opacity-100"
                 leaveTo="opacity-0"
               >
-                <PopoverPanel className="flex flex-col absolute w-full pr-4 sm:pr-0 sm:w-1/3 2xl:w-1/4 sm:min-w-min h-[calc(100vh-1rem)] z-[51] inset-x-0 text-sm text-ui-fg-on-color m-2 backdrop-blur-2xl">
+                <Popover.Panel className="flex flex-col fixed w-full pr-4 sm:pr-0 sm:w-1/3 2xl:w-1/4 sm:min-w-min h-[calc(100vh-1rem)] z-30 inset-x-0 text-sm text-ui-fg-on-color m-2 backdrop-blur-2xl">
                   <div
                     data-testid="nav-menu-popup"
-                    className="flex flex-col h-full bg-[rgba(3,7,18,0.5)] rounded-rounded justify-between p-6"
+                    className="flex flex-col h-full bg-[#1e2022] rounded-rounded justify-between p-6 shadow-2xl"
                   >
-                    <div className="flex justify-end" id="xmark">
-                      <button data-testid="close-menu-button" onClick={close}>
+                    <div className="flex justify-end" id="x-mark">
+                      <button
+                        data-testid="close-menu-button"
+                        onClick={close}
+                        className="text-white hover:text-neutral-400 p-1"
+                      >
                         <XMark />
                       </button>
                     </div>
+
                     <ul className="flex flex-col gap-6 items-start justify-start">
                       {Object.entries(SideMenuItems).map(([name, href]) => {
                         return (
                           <li key={name}>
                             <LocalizedClientLink
                               href={href}
-                              className="text-3xl leading-10 hover:text-ui-fg-disabled"
+                              className="text-2xl leading-10 hover:text-red-500 transition-colors font-semibold text-white"
                               onClick={close}
                               data-testid={`${name.toLowerCase()}-link`}
                             >
@@ -87,31 +84,16 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                         )
                       })}
                     </ul>
-                    <div className="flex flex-col gap-y-6">
-                      {!!locales?.length && (
-                        <div
-                          className="flex justify-between"
-                          onMouseEnter={languageToggleState.open}
-                          onMouseLeave={languageToggleState.close}
-                        >
-                          <LanguageSelect
-                            toggleState={languageToggleState}
-                            locales={locales}
-                            currentLocale={currentLocale}
-                          />
-                          <ArrowRightMini
-                            className={clx(
-                              "transition-transform duration-150",
-                              languageToggleState.state ? "-rotate-90" : ""
-                            )}
-                          />
-                        </div>
-                      )}
+
+                    <div className="flex flex-col gap-y-6 pt-6 border-t border-neutral-700">
                       <div
-                        className="flex justify-between"
+                        className="flex justify-between items-center text-neutral-300 hover:text-white cursor-pointer"
                         onMouseEnter={countryToggleState.open}
                         onMouseLeave={countryToggleState.close}
                       >
+                        <span className="text-xs font-medium uppercase tracking-wider text-neutral-400">
+                          Envíos a:
+                        </span>
                         {regions && (
                           <CountrySelect
                             toggleState={countryToggleState}
@@ -121,16 +103,17 @@ const SideMenu = ({ regions, locales, currentLocale }: SideMenuProps) => {
                         <ArrowRightMini
                           className={clx(
                             "transition-transform duration-150",
-                            countryToggleState.state ? "-rotate-90" : ""
+                            countryToggleState.state && "-rotate-90"
                           )}
                         />
                       </div>
-                      <Text className="flex justify-between txt-compact-small">
-                        © {new Date().getFullYear()} SuppCom - Store. Todos los derechos reservados.
+
+                      <Text className="text-xs text-neutral-400">
+                        © {new Date().getFullYear()} SuppCom. Todos los derechos reservados.
                       </Text>
                     </div>
                   </div>
-                </PopoverPanel>
+                </Popover.Panel>
               </Transition>
             </>
           )}
