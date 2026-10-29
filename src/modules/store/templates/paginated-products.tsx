@@ -50,24 +50,34 @@ export default async function PaginatedProducts({
     queryParams["order"] = "created_at"
   }
 
-  const {
-    response: { products, count },
-  } = await getProductsListWithSort({
-    page,
-    queryParams,
-    sortBy,
-    countryCode,
-  })
+  let products: any[] = []
+  let totalCount = 0
 
-  // Filtrado de productos si hay búsqueda
-  let displayedProducts = products || []
+  try {
+    const data = await getProductsListWithSort({
+      page,
+      queryParams,
+      sortBy,
+      countryCode,
+    })
+
+    if (data?.response?.products) {
+      products = data.response.products
+      totalCount = data.response.count || products.length
+    }
+  } catch (error) {
+    console.error("Error al obtener lista de productos:", error)
+  }
+
+  // Filtrado en memoria si hay búsqueda
+  let displayedProducts = products
 
   if (q && q.trim()) {
     const term = q.trim().toLowerCase()
-    displayedProducts = displayedProducts.filter((p) => {
-      const title = (p.title || "").toLowerCase()
-      const description = (p.description || "").toLowerCase()
-      const handle = (p.handle || "").toLowerCase()
+    displayedProducts = products.filter((p) => {
+      const title = (p?.title || "").toLowerCase()
+      const description = (p?.description || "").toLowerCase()
+      const handle = (p?.handle || "").toLowerCase()
 
       return (
         title.includes(term) ||
@@ -76,13 +86,12 @@ export default async function PaginatedProducts({
         (term.includes("lenov") && title.includes("lenovo"))
       )
     })
+    totalCount = displayedProducts.length
   }
 
-  const totalPages = Math.ceil(
-    (q ? displayedProducts.length : count) / PRODUCT_LIMIT
-  )
+  const totalPages = Math.ceil(totalCount / PRODUCT_LIMIT) || 1
 
-  if (displayedProducts.length === 0) {
+  if (!displayedProducts || displayedProducts.length === 0) {
     return (
       <div className="py-16 text-center text-neutral-500 w-full col-span-full">
         <p className="text-base font-semibold text-neutral-800">
