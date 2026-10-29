@@ -30,8 +30,9 @@ export default async function PaginatedProducts({
   countryCode: string
   q?: string
 }) {
+  // Límite seguro admitido por el backend de Medusa v2
   const queryParams: PaginatedProductsParams = {
-    limit: 100, // Traemos el lote para poder filtrar localmente si hay búsqueda
+    limit: PRODUCT_LIMIT,
   }
 
   if (collectionId) {
@@ -50,16 +51,25 @@ export default async function PaginatedProducts({
     queryParams["order"] = "created_at"
   }
 
-  let {
-    response: { products, count },
-  } = await getProductsListWithSort({
-    page,
-    queryParams,
-    sortBy,
-    countryCode,
-  })
+  // Llamada protegida contra caídas de la API
+  let products: any[] = []
+  let count: number = 0
 
-  // FILTRO INTELIGENTE: Si el usuario buscó algo por la barra
+  try {
+    const res = await getProductsListWithSort({
+      page,
+      queryParams,
+      sortBy,
+      countryCode,
+    })
+
+    products = res?.response?.products || []
+    count = res?.response?.count || 0
+  } catch (error) {
+    console.error("Error al obtener productos:", error)
+  }
+
+  // FILTRO INTELIGENTE: Si el usuario buscó por la barra superior
   if (q && q.trim()) {
     const term = q.trim().toLowerCase()
     products = products.filter((product) => {
@@ -67,7 +77,6 @@ export default async function PaginatedProducts({
       const description = (product.description || "").toLowerCase()
       const handle = (product.handle || "").toLowerCase()
 
-      // Coincidencia directa o typo común
       return (
         title.includes(term) ||
         description.includes(term) ||
@@ -85,33 +94,4 @@ export default async function PaginatedProducts({
   if (products.length === 0) {
     return (
       <div className="py-16 text-center text-neutral-500">
-        <p className="text-base font-medium">No se encontraron productos para tu búsqueda.</p>
-        <p className="text-xs text-neutral-400 mt-1">Intenta con otro término o revisa las categorías.</p>
-      </div>
-    )
-  }
-
-  return (
-    <>
-      <ul
-        className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
-        data-testid="products-list"
-      >
-        {products.map((p) => {
-          return (
-            <li key={p.id}>
-              <ProductPreview product={p} countryCode={countryCode} />
-            </li>
-          )
-        })}
-      </ul>
-      {totalPages > 1 && (
-        <Pagination
-          data-testid="product-pagination"
-          page={page}
-          totalPages={totalPages}
-        />
-      )}
-    </>
-  )
-}
+        <p className="text-
