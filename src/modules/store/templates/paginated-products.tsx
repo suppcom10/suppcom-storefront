@@ -1,9 +1,16 @@
-import { getProductsList, getProductsListWithSort } from "@lib/data/products"
+import { getProductsListWithSort } from "@lib/data/products"
 import ProductPreview from "@modules/products/components/product-preview"
 import { Pagination } from "@modules/store/components/pagination"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
 
 const PRODUCT_LIMIT = 12
+
+type PaginatedProductsParams = {
+  limit: number
+  collection_id?: string[]
+  category_id?: string[]
+  id?: string[]
+}
 
 export default async function PaginatedProducts({
   sortBy,
@@ -22,101 +29,41 @@ export default async function PaginatedProducts({
   countryCode: string
   q?: string
 }) {
-  // CASO 1: Si hay un término de búsqueda (ej. "lenovo")
-  if (q && q.trim()) {
-    const term = q.trim().toLowerCase()
-    let searchProducts: any[] = []
-
-    try {
-      // Traemos una lista amplia sin restringir a solo la página 1
-      const res = await getProductsList({
-        pageParam: 1,
-        queryParams: {
-          limit: 100,
-          ...(collectionId && { collection_id: [collectionId] }),
-          ...(categoryId && { category_id: [categoryId] }),
-        },
-        countryCode,
-      })
-
-      searchProducts = res?.response?.products || []
-    } catch (e) {
-      // Si falla getProductsList, intentamos con getProductsListWithSort
-      try {
-        const fallback = await getProductsListWithSort({
-          page: 1,
-          queryParams: { limit: 50 },
-          sortBy: "created_at",
-          countryCode,
-        })
-        searchProducts = fallback?.response?.products || []
-      } catch (err) {
-        console.error("Error en búsqueda:", err)
-      }
-    }
-
-    // Filtrar sobre todo el catálogo obtenido
-    const matchedProducts = searchProducts.filter((p) => {
-      const title = (p?.title || "").toLowerCase()
-      const desc = (p?.description || "").toLowerCase()
-      const handle = (p?.handle || "").toLowerCase()
-      return title.includes(term) || desc.includes(term) || handle.includes(term)
-    })
-
-    if (matchedProducts.length === 0) {
-      return (
-        <div className="py-16 text-center text-neutral-500 w-full col-span-full">
-          <p className="text-base font-semibold text-neutral-800">
-            No se encontraron productos para &quot;{q}&quot;.
-          </p>
-          <p className="text-xs text-neutral-400 mt-1">
-            Intenta con otro término o explora las categorías del catálogo.
-          </p>
-        </div>
-      )
-    }
-
-    return (
-      <ul
-        className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
-        data-testid="products-list"
-      >
-        {matchedProducts.map((p) => (
-          <li key={p.id}>
-            <ProductPreview product={p} countryCode={countryCode} />
-          </li>
-        ))}
-      </ul>
-    )
+  const queryParams: PaginatedProductsParams = {
+    limit: PRODUCT_LIMIT,
   }
 
-  // CASO 2: Navegación estándar de la tienda (sin búsqueda)
-  let normalProducts: any[] = []
-  let totalCount = 0
+  if (collectionId) {
+    queryParams["collection_id"] = [collectionId]
+  }
+
+  if (categoryId) {
+    queryParams["category_id"] = [categoryId]
+  }
+
+  if (productsIds) {
+    queryParams["id"] = productsIds
+  }
+
+  let products: any[] = []
+  let count = 0
 
   try {
     const res = await getProductsListWithSort({
       page,
-      queryParams: {
-        limit: PRODUCT_LIMIT,
-        ...(collectionId && { collection_id: [collectionId] }),
-        ...(categoryId && { category_id: [categoryId] }),
-        ...(productsIds && { id: productsIds }),
-        order: sortBy === "created_at" ? "created_at" : undefined,
-      },
+      queryParams,
       sortBy,
       countryCode,
     })
 
-    normalProducts = res?.response?.products || []
-    totalCount = res?.response?.count || 0
+    products = res?.response?.products || []
+    count = res?.response?.count || 0
   } catch (error) {
-    console.error("Error cargando productos:", error)
+    console.error("Error al cargar productos de Medusa:", error)
   }
 
-  const totalPages = Math.ceil(totalCount / PRODUCT_LIMIT) || 1
-
-  if (normalProducts.length === 0) {
+  // Si no hay productos en la tienda en absoluto
+  if (products.length === 0) {
     return (
       <div className="py-16 text-center text-neutral-500 w-full col-span-full">
         <p className="text-base font-semibold text-neutral-800">
@@ -126,13 +73,46 @@ export default async function PaginatedProducts({
     )
   }
 
+  // Filtrado reactivo en caso de búsqueda
+  let displayedProducts = products
+  if (q && q.trim()) {
+    const term = q.trim().toLowerCase()
+    displayedProducts = products.filter((p) => {
+      const title = (p?.title || "").toLowerCase()
+      const desc = (p?.description || "").toLowerCase()
+      const handle = (p?.handle || "").toLowerCase()
+
+      return (
+        title.includes(term) ||
+        desc.includes(term) ||
+        handle.includes(term) ||
+        (term.includes("lenov") && title.includes("lenovo"))
+      )
+    })
+  }
+
+  if (displayedProducts.length === 0) {
+    return (
+      <div className="py-16 text-center text-neutral-500 w-full col-span-full">
+        <p className="text-base font-semibold text-neutral-800">
+          No se encontraron productos para &quot;{q}&quot;.
+        </p>
+        <p className="text-xs text-neutral-400 mt-1">
+          Intenta con otro término o explora las categorías del catálogo.
+        </p>
+      </div>
+    )
+  }
+
+  const totalPages = Math.ceil((q ? displayedProducts.length : count) / PRODUCT_LIMIT) || 1
+
   return (
     <>
       <ul
         className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
         data-testid="products-list"
       >
-        {normalProducts.map((p) => (
+        {displayedProducts.map((p) => (
           <li key={p.id}>
             <ProductPreview product={p} countryCode={countryCode} />
           </li>
