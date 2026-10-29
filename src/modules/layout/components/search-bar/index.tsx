@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
+import { useRouter } from "next/navigation"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
 type ProductItem = {
@@ -12,7 +13,6 @@ type ProductItem = {
   thumbnail?: string
 }
 
-// Catálogo precargado de alta disponibilidad para SuppCom
 const CATALOG: ProductItem[] = [
   {
     id: "prod_lenovo",
@@ -69,6 +69,7 @@ export default function SearchBar() {
   const [results, setResults] = useState<ProductItem[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  const router = useRouter()
 
   // Cerrar lista al hacer clic fuera del componente
   useEffect(() => {
@@ -81,7 +82,7 @@ export default function SearchBar() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  // Búsqueda instantánea con lógica tolerante a fallos tipográficos
+  // Búsqueda instantánea en vivo
   useEffect(() => {
     const clean = query.trim().toLowerCase()
 
@@ -94,10 +95,9 @@ export default function SearchBar() {
     const matches = CATALOG.filter((item) => {
       const fullText = `${item.title} ${item.description} ${item.category}`.toLowerCase()
 
-      // 1. Coincidencia directa de texto
       if (fullText.includes(clean)) return true
 
-      // 2. Tolerancia a errores de tipeo comunes (Fuzzy logic)
+      // Tolerancia a typos (Fuzzy logic)
       if ((clean.includes("lenov") || clean.includes("lenvo")) && fullText.includes("lenovo")) return true
       if ((clean.includes("and") || clean.includes("amf")) && fullText.includes("amd")) return true
       if ((clean.includes("tarejta") || clean.includes("tarjet") || clean.includes("tarj")) && fullText.includes("tarjeta")) return true
@@ -109,28 +109,43 @@ export default function SearchBar() {
       return false
     })
 
-    setResults(matches)
+    setResults(matches.slice(0, 5)) // Solo 5 sugerencias clave para no saturar
     setIsOpen(true)
   }, [query])
 
+  // Manejador del Enter / Envío del formulario
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const trimmed = query.trim()
+    if (!trimmed) return
+
+    setIsOpen(false)
+    // Redirige al catálogo general filtrando por el término ingresado
+    router.push(`/store?q=${encodeURIComponent(trimmed)}`)
+  }
+
   return (
     <div ref={containerRef} className="relative w-full max-w-md mx-4">
-      <div className="relative flex items-center">
+      <form onSubmit={handleSearchSubmit} className="relative flex items-center">
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => query.trim() && setIsOpen(true)}
-          placeholder="Buscar procesadores, laptops, RTX, RAM..."
+          placeholder="Buscar procesadores, laptops, RTX, RAM... (Presiona Enter)"
           className="w-full pl-9 pr-8 py-1.5 text-xs bg-neutral-100 hover:bg-neutral-50 focus:bg-white border border-transparent focus:border-[#E31837] rounded-full outline-hidden transition-all text-neutral-800 placeholder:text-neutral-400 focus:shadow-xs"
         />
 
-        {/* Ícono Lupa */}
-        <span className="absolute left-3 text-neutral-400 pointer-events-none">
+        {/* Ícono Lupa (funciona también como botón de envío) */}
+        <button
+          type="submit"
+          className="absolute left-3 text-neutral-400 hover:text-neutral-600 transition-colors cursor-pointer"
+          aria-label="Buscar"
+        >
           <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35m1.35-5.65a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
-        </span>
+        </button>
 
         {/* Botón limpiar input */}
         {query && (
@@ -146,9 +161,9 @@ export default function SearchBar() {
             ✕
           </button>
         )}
-      </div>
+      </form>
 
-      {/* Menú de resultados en vivo */}
+      {/* Menú flotante de vista previa rápida (máx 5) */}
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-neutral-100 overflow-hidden z-50 animate-in fade-in duration-150">
           {results.length > 0 ? (
@@ -160,7 +175,7 @@ export default function SearchBar() {
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-3 p-3 hover:bg-neutral-50 transition-colors text-left"
                 >
-                  <div className="w-10 h-10 bg-neutral-100 rounded-md flex items-center justify-center text-[10px] text-neutral-500 shrink-0 font-bold border border-neutral-200">
+                  <div className="w-9 h-9 bg-neutral-100 rounded-md flex items-center justify-center text-[10px] text-neutral-500 shrink-0 font-bold border border-neutral-200">
                     PC
                   </div>
 
@@ -182,12 +197,12 @@ export default function SearchBar() {
                 onClick={() => setIsOpen(false)}
                 className="block p-2.5 text-center text-[11px] font-bold text-[#E31837] bg-red-50/60 hover:bg-red-50 transition-colors"
               >
-                Ver catálogo completo para "{query}"
+                Ver todos los resultados para "{query}" (o presiona Enter) →
               </LocalizedClientLink>
             </div>
           ) : (
             <div className="p-4 text-center text-xs text-neutral-500">
-              No se encontraron coincidencias para "{query}"
+              No hay coincidencias directas. Presiona <strong>Enter</strong> para buscar en toda la tienda.
             </div>
           )}
         </div>
