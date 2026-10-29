@@ -2,6 +2,7 @@ import { Metadata } from "next"
 import { Inter, Fredoka } from "next/font/google"
 import { getBaseURL } from "@lib/util/env"
 import "styles/globals.css"
+import WhatsAppButton from "@modules/common/components/whatsapp-button"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -37,6 +38,9 @@ export default function RootLayout(props: { children: React.ReactNode }) {
     <html lang="es" data-mode="light" className={`${inter.variable} ${fredoka.variable}`}>
       <body className={`${inter.className} bg-white text-neutral-900 antialiased`}>
         <main className="relative">{props.children}</main>
+
+        <main className="relative">{props.children}</main>
+<WhatsAppButton />
       </body>
     </html>
   )
