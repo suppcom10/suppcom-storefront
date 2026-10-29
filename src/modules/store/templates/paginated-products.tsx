@@ -30,8 +30,9 @@ export default async function PaginatedProducts({
   countryCode: string
   q?: string
 }) {
+  // Límite seguro admitido por el schema de Medusa v2
   const queryParams: PaginatedProductsParams = {
-    limit: 100,
+    limit: 20,
   }
 
   if (collectionId) {
@@ -50,29 +51,45 @@ export default async function PaginatedProducts({
     queryParams["order"] = "created_at"
   }
 
-  const {
-    response: { products, count },
-  } = await getProductsListWithSort({
-    page,
-    queryParams,
-    sortBy,
-    countryCode,
-  })
+  let products: any[] = []
+  let totalCount = 0
 
-  // Si hay búsqueda activa (?q=...), filtramos el catálogo
-  let items = products || []
+  try {
+    const res = await getProductsListWithSort({
+      page,
+      queryParams,
+      sortBy,
+      countryCode,
+    })
+
+    if (res?.response?.products) {
+      products = res.response.products
+      totalCount = res.response.count || products.length
+    }
+  } catch (error) {
+    console.error("Error al obtener productos:", error)
+  }
+
+  // Filtrado reactivo en memoria cuando existe el parámetro de búsqueda
+  let items = products
 
   if (q && q.trim()) {
     const term = q.trim().toLowerCase()
-    items = items.filter((p) => {
-      const title = (p.title || "").toLowerCase()
-      const desc = (p.description || "").toLowerCase()
-      const handle = (p.handle || "").toLowerCase()
-      return title.includes(term) || desc.includes(term) || handle.includes(term)
+    items = products.filter((p) => {
+      const title = (p?.title || "").toLowerCase()
+      const description = (p?.description || "").toLowerCase()
+      const handle = (p?.handle || "").toLowerCase()
+
+      return (
+        title.includes(term) ||
+        description.includes(term) ||
+        handle.includes(term)
+      )
     })
+    totalCount = items.length
   }
 
-  const totalPages = Math.ceil((q ? items.length : count) / PRODUCT_LIMIT)
+  const totalPages = Math.ceil(totalCount / PRODUCT_LIMIT) || 1
 
   if (items.length === 0) {
     return (
