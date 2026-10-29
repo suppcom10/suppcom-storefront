@@ -41,3 +41,4 @@ const StoreTemplate = ({
 }
 
 export default StoreTemplate
+
