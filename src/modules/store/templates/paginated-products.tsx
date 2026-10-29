@@ -10,6 +10,7 @@ type PaginatedProductsParams = {
   collection_id?: string[]
   category_id?: string[]
   id?: string[]
+  order?: string
 }
 
 export default async function PaginatedProducts({
@@ -30,7 +31,7 @@ export default async function PaginatedProducts({
   q?: string
 }) {
   const queryParams: PaginatedProductsParams = {
-    limit: PRODUCT_LIMIT,
+    limit: 100,
   }
 
   if (collectionId) {
@@ -45,57 +46,41 @@ export default async function PaginatedProducts({
     queryParams["id"] = productsIds
   }
 
-  let products: any[] = []
-  let count = 0
-
-  try {
-    const res = await getProductsListWithSort({
-      page,
-      queryParams,
-      sortBy,
-      countryCode,
-    })
-
-    products = res?.response?.products || []
-    count = res?.response?.count || 0
-  } catch (error) {
-    console.error("Error al cargar productos de Medusa:", error)
+  if (sortBy === "created_at") {
+    queryParams["order"] = "created_at"
   }
 
-  // Si no hay productos en la tienda en absoluto
-  if (products.length === 0) {
-    return (
-      <div className="py-16 text-center text-neutral-500 w-full col-span-full">
-        <p className="text-base font-semibold text-neutral-800">
-          No hay productos disponibles en esta sección.
-        </p>
-      </div>
-    )
-  }
+  const {
+    response: { products, count },
+  } = await getProductsListWithSort({
+    page,
+    queryParams,
+    sortBy,
+    countryCode,
+  })
 
-  // Filtrado reactivo en caso de búsqueda
-  let displayedProducts = products
+  // Si hay búsqueda activa (?q=...), filtramos el catálogo
+  let items = products || []
+
   if (q && q.trim()) {
     const term = q.trim().toLowerCase()
-    displayedProducts = products.filter((p) => {
-      const title = (p?.title || "").toLowerCase()
-      const desc = (p?.description || "").toLowerCase()
-      const handle = (p?.handle || "").toLowerCase()
-
-      return (
-        title.includes(term) ||
-        desc.includes(term) ||
-        handle.includes(term) ||
-        (term.includes("lenov") && title.includes("lenovo"))
-      )
+    items = items.filter((p) => {
+      const title = (p.title || "").toLowerCase()
+      const desc = (p.description || "").toLowerCase()
+      const handle = (p.handle || "").toLowerCase()
+      return title.includes(term) || desc.includes(term) || handle.includes(term)
     })
   }
 
-  if (displayedProducts.length === 0) {
+  const totalPages = Math.ceil((q ? items.length : count) / PRODUCT_LIMIT)
+
+  if (items.length === 0) {
     return (
       <div className="py-16 text-center text-neutral-500 w-full col-span-full">
         <p className="text-base font-semibold text-neutral-800">
-          No se encontraron productos para &quot;{q}&quot;.
+          {q
+            ? `No se encontraron productos para "${q}".`
+            : "No hay productos disponibles en esta sección."}
         </p>
         <p className="text-xs text-neutral-400 mt-1">
           Intenta con otro término o explora las categorías del catálogo.
@@ -104,15 +89,13 @@ export default async function PaginatedProducts({
     )
   }
 
-  const totalPages = Math.ceil((q ? displayedProducts.length : count) / PRODUCT_LIMIT) || 1
-
   return (
     <>
       <ul
         className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
         data-testid="products-list"
       >
-        {displayedProducts.map((p) => (
+        {items.map((p) => (
           <li key={p.id}>
             <ProductPreview product={p} countryCode={countryCode} />
           </li>
