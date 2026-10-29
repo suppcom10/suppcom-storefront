@@ -1,5 +1,6 @@
 import { Metadata } from "next"
 import { Inter, Fredoka } from "next/font/google"
+import { getBaseURL } from "@lib/util/env"
 import "styles/globals.css"
 
 const inter = Inter({
@@ -16,10 +17,8 @@ const fredoka = Fredoka({
   display: "swap",
 })
 
-const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://suppcom.pe"
-
 export const metadata: Metadata = {
-  metadataBase: new URL(baseUrl),
+  metadataBase: new URL(getBaseURL()),
   title: {
     default: "SuppCom | Hardware, Laptops y Ensamblaje de PC en Perú",
     template: "%s | SuppCom",
@@ -27,10 +26,10 @@ export const metadata: Metadata = {
   description:
     "Tienda especializada en tecnología y hardware: Laptops, componentes de PC, repuestos y ensamblaje a medida con garantía local.",
   icons: {
-  icon: "/icon.svg",
-  shortcut: "/icon.svg",
-  apple: "/icon.svg",
-},
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
 }
 
 export default function RootLayout(props: { children: React.ReactNode }) {
@@ -38,9 +37,6 @@ export default function RootLayout(props: { children: React.ReactNode }) {
     <html lang="es" data-mode="light" className={`${inter.variable} ${fredoka.variable}`}>
       <body className={`${inter.className} bg-white text-neutral-900 antialiased`}>
         <main className="relative">{props.children}</main>
-
-        <main className="relative">{props.children}</main>
-<WhatsAppButton />
       </body>
     </html>
   )
