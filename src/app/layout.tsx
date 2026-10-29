@@ -38,6 +38,9 @@ export default function RootLayout(props: { children: React.ReactNode }) {
     <html lang="es" data-mode="light" className={`${inter.variable} ${fredoka.variable}`}>
       <body className={`${inter.className} bg-white text-neutral-900 antialiased`}>
         <main className="relative">{props.children}</main>
+
+        <main className="relative">{props.children}</main>
+<WhatsAppButton />
       </body>
     </html>
   )
