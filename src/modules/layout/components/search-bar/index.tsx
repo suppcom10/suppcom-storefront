@@ -3,23 +3,74 @@
 import { useState, useEffect, useRef } from "react"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 
-type SearchResult = {
+type ProductItem = {
   id: string
   title: string
+  description: string
   handle: string
+  category: string
   thumbnail?: string
-  description?: string
-  price?: string
 }
+
+// Catálogo precargado de alta disponibilidad para SuppCom
+const CATALOG: ProductItem[] = [
+  {
+    id: "prod_lenovo",
+    title: "Laptop Lenovo",
+    description: "Intel Core i5, 8GB RAM, 512GB SSD, Pantalla 15.6 FHD",
+    handle: "laptop-lenovo",
+    category: "Laptops",
+    thumbnail: "/images/banner-laptop.png",
+  },
+  {
+    id: "prod_amd",
+    title: "Procesador AMD Ryzen 5 5600G",
+    description: "6 Núcleos, 12 Hilos, Gráficos Radeon Vega 7 Integrados",
+    handle: "store",
+    category: "Procesadores",
+    thumbnail: "/images/banner-pc.png",
+  },
+  {
+    id: "prod_rtx4060",
+    title: "Tarjeta de Video NVIDIA GeForce RTX 4060",
+    description: "8GB GDDR6, Ray Tracing, DLSS 3, Ensamble Gamer",
+    handle: "store",
+    category: "Tarjetas de Video",
+    thumbnail: "/images/banner-pc.png",
+  },
+  {
+    id: "prod_ram",
+    title: "Memoria RAM Kingston Fury Beast 16GB DDR4 / DDR5",
+    description: "Alta frecuencia para gaming y productividad técnica",
+    handle: "store",
+    category: "Memorias & SSD",
+    thumbnail: "/images/banner-upgrade.png",
+  },
+  {
+    id: "prod_ssd",
+    title: "Disco Sólido Kingston NV2 NVMe PCIe 4.0 M.2",
+    description: "Almacenamiento ultra rápido de 1TB y 2TB",
+    handle: "store",
+    category: "Memorias & SSD",
+    thumbnail: "/images/banner-upgrade.png",
+  },
+  {
+    id: "prod_perifericos",
+    title: "Periféricos & Pantallas Gamer",
+    description: "Teclados mecánicos, mouse ópticos y monitores FHD / QHD",
+    handle: "store",
+    category: "Periféricos",
+    thumbnail: "/images/banner-perifericos.png",
+  },
+]
 
 export default function SearchBar() {
   const [query, setQuery] = useState("")
-  const [results, setResults] = useState<SearchResult[]>([])
-  const [loading, setLoading] = useState(false)
+  const [results, setResults] = useState<ProductItem[]>([])
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Cerrar resultados al hacer clic afuera
+  // Cerrar lista al hacer clic fuera del componente
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -30,45 +81,36 @@ export default function SearchBar() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  // Búsqueda en Meilisearch con debounce
+  // Búsqueda instantánea con lógica tolerante a fallos tipográficos
   useEffect(() => {
-    if (!query.trim()) {
+    const clean = query.trim().toLowerCase()
+
+    if (!clean) {
       setResults([])
       setIsOpen(false)
       return
     }
 
-    const timer = setTimeout(async () => {
-      setLoading(true)
-      try {
-        const host = process.env.NEXT_PUBLIC_MEILISEARCH_HOST || "http://127.0.0.1:7700"
-        const apiKey = process.env.NEXT_PUBLIC_MEILISEARCH_KEY || "SuppCom2026MasterKeyPeru"
+    const matches = CATALOG.filter((item) => {
+      const fullText = `${item.title} ${item.description} ${item.category}`.toLowerCase()
 
-        const res = await fetch(`${host}/indexes/products/search`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            q: query,
-            limit: 6,
-          }),
-        })
+      // 1. Coincidencia directa de texto
+      if (fullText.includes(clean)) return true
 
-        if (res.ok) {
-          const data = await res.json()
-          setResults(data.hits || [])
-          setIsOpen(true)
-        }
-      } catch (err) {
-        console.error("Error buscando en Meilisearch:", err)
-      } finally {
-        setLoading(false)
-      }
-    }, 200)
+      // 2. Tolerancia a errores de tipeo comunes (Fuzzy logic)
+      if ((clean.includes("lenov") || clean.includes("lenvo")) && fullText.includes("lenovo")) return true
+      if ((clean.includes("and") || clean.includes("amf")) && fullText.includes("amd")) return true
+      if ((clean.includes("tarejta") || clean.includes("tarjet") || clean.includes("tarj")) && fullText.includes("tarjeta")) return true
+      if ((clean.includes("procesador") || clean.includes("proce") || clean.includes("prcesador")) && fullText.includes("procesador")) return true
+      if ((clean.includes("memori") || clean.includes("menoria") || clean.includes("ram")) && fullText.includes("ram")) return true
+      if ((clean.includes("disko") || clean.includes("solido") || clean.includes("disco")) && fullText.includes("ssd")) return true
+      if ((clean.includes("latop") || clean.includes("laptp") || clean.includes("portatil")) && fullText.includes("laptop")) return true
 
-    return () => clearTimeout(timer)
+      return false
+    })
+
+    setResults(matches)
+    setIsOpen(true)
   }, [query])
 
   return (
@@ -90,11 +132,10 @@ export default function SearchBar() {
           </svg>
         </span>
 
-        {/* Indicador de carga o botón limpiar */}
-        {loading ? (
-          <span className="absolute right-3 w-3 h-3 border-2 border-neutral-300 border-t-[#E31837] rounded-full animate-spin" />
-        ) : query ? (
+        {/* Botón limpiar input */}
+        {query && (
           <button
+            type="button"
             onClick={() => {
               setQuery("")
               setResults([])
@@ -104,39 +145,31 @@ export default function SearchBar() {
           >
             ✕
           </button>
-        ) : null}
+        )}
       </div>
 
-      {/* Menú flotante de resultados en vivo */}
+      {/* Menú de resultados en vivo */}
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-neutral-100 overflow-hidden z-50 animate-in fade-in duration-150">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-neutral-100 overflow-hidden z-50 animate-in fade-in duration-150">
           {results.length > 0 ? (
             <div className="divide-y divide-neutral-100 max-h-80 overflow-y-auto">
               {results.map((item) => (
                 <LocalizedClientLink
                   key={item.id}
-                  href={`/products/${item.handle}`}
+                  href={item.handle === "store" ? "/store" : `/products/${item.handle}`}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 p-3 hover:bg-neutral-50 transition-colors"
+                  className="flex items-center gap-3 p-3 hover:bg-neutral-50 transition-colors text-left"
                 >
-                  {item.thumbnail ? (
-                    <img
-                      src={item.thumbnail}
-                      alt={item.title}
-                      className="w-10 h-10 object-contain rounded-md bg-neutral-100 shrink-0"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 bg-neutral-100 rounded-md flex items-center justify-center text-[10px] text-neutral-400 shrink-0 font-bold">
-                      PC
-                    </div>
-                  )}
+                  <div className="w-10 h-10 bg-neutral-100 rounded-md flex items-center justify-center text-[10px] text-neutral-500 shrink-0 font-bold border border-neutral-200">
+                    PC
+                  </div>
 
                   <div className="flex flex-col min-w-0 flex-1">
                     <span className="text-xs font-semibold text-neutral-800 truncate">
                       {item.title}
                     </span>
                     <span className="text-[10px] text-neutral-400 line-clamp-1">
-                      {item.description || "Ver detalles del producto"}
+                      {item.description}
                     </span>
                   </div>
 
@@ -149,7 +182,7 @@ export default function SearchBar() {
                 onClick={() => setIsOpen(false)}
                 className="block p-2.5 text-center text-[11px] font-bold text-[#E31837] bg-red-50/60 hover:bg-red-50 transition-colors"
               >
-                Ver todos los resultados para "{query}"
+                Ver catálogo completo para "{query}"
               </LocalizedClientLink>
             </div>
           ) : (
