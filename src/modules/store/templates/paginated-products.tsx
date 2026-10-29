@@ -10,7 +10,6 @@ type PaginatedProductsParams = {
   collection_id?: string[]
   category_id?: string[]
   id?: string[]
-  order?: string
 }
 
 export default async function PaginatedProducts({
@@ -46,59 +45,45 @@ export default async function PaginatedProducts({
     queryParams["id"] = productsIds
   }
 
-  if (sortBy === "created_at") {
-    queryParams["order"] = "created_at"
-  }
+  const {
+    response: { products, count },
+  } = await getProductsListWithSort({
+    page,
+    queryParams,
+    sortBy,
+    countryCode,
+  })
 
-  let products: any[] = []
-  let totalCount = 0
-
-  try {
-    const data = await getProductsListWithSort({
-      page,
-      queryParams,
-      sortBy,
-      countryCode,
-    })
-
-    if (data?.response?.products) {
-      products = data.response.products
-      totalCount = data.response.count || products.length
-    }
-  } catch (error) {
-    console.error("Error al obtener lista de productos:", error)
-  }
-
-  // Filtrado en memoria si hay búsqueda
-  let displayedProducts = products
+  // Filtrado de productos por coincidencia de texto
+  let displayedProducts = products || []
 
   if (q && q.trim()) {
-    const term = q.trim().toLowerCase()
-    displayedProducts = products.filter((p) => {
-      const title = (p?.title || "").toLowerCase()
-      const description = (p?.description || "").toLowerCase()
-      const handle = (p?.handle || "").toLowerCase()
+    const cleanQ = q.trim().toLowerCase()
+    displayedProducts = displayedProducts.filter((product) => {
+      const title = (product?.title || "").toLowerCase()
+      const description = (product?.description || "").toLowerCase()
+      const handle = (product?.handle || "").toLowerCase()
 
       return (
-        title.includes(term) ||
-        description.includes(term) ||
-        handle.includes(term) ||
-        (term.includes("lenov") && title.includes("lenovo"))
+        title.includes(cleanQ) ||
+        description.includes(cleanQ) ||
+        handle.includes(cleanQ)
       )
     })
-    totalCount = displayedProducts.length
   }
 
-  const totalPages = Math.ceil(totalCount / PRODUCT_LIMIT) || 1
+  const totalPages = Math.ceil(
+    (q ? displayedProducts.length : count) / PRODUCT_LIMIT
+  )
 
-  if (!displayedProducts || displayedProducts.length === 0) {
+  if (displayedProducts.length === 0) {
     return (
       <div className="py-16 text-center text-neutral-500 w-full col-span-full">
         <p className="text-base font-semibold text-neutral-800">
           No se encontraron productos para {q ? `"${q}"` : "esta categoría"}.
         </p>
         <p className="text-xs text-neutral-400 mt-1">
-          Intenta con otro término o explora las categorías del catálogo.
+          Intenta con otro término o explora las categorías del catálogo[cite: 20].
         </p>
       </div>
     )
