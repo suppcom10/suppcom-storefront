@@ -1,4 +1,4 @@
-import { getProductsListWithSort } from "@lib/data/products"
+import { getProductsList } from "@lib/data/products"
 import ProductPreview from "@modules/products/components/product-preview"
 import { Pagination } from "@modules/store/components/pagination"
 import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
@@ -23,7 +23,7 @@ export default async function PaginatedProducts({
   q?: string
 }) {
   const queryParams: Record<string, any> = {
-    limit: 12,
+    limit: 50,
   }
 
   if (collectionId) {
@@ -38,39 +38,45 @@ export default async function PaginatedProducts({
     queryParams["id"] = productsIds
   }
 
-  // Llamada estándar nativa de Medusa v2 (el orden lo maneja sortBy, NUNCA order en queryParams)
-  let products: any[] = []
-  let count = 0
+  // Obtenemos los productos con la llamada estándar directa
+  const {
+    response: { products, count },
+  } = await getProductsList({
+    pageParam: page,
+    queryParams,
+    countryCode,
+  })
 
-  try {
-    const res = await getProductsListWithSort({
-      page,
-      queryParams,
-      sortBy: sortBy || "created_at",
-      countryCode,
+  let displayedProducts = products || []
+
+  // Ordenamiento local según sortBy
+  if (sortBy === "price_asc") {
+    displayedProducts.sort((a, b) => {
+      const priceA = a.variants?.[0]?.calculated_price?.calculated_amount ?? 0
+      const priceB = b.variants?.[0]?.calculated_price?.calculated_amount ?? 0
+      return priceA - priceB
     })
-
-    products = res?.response?.products || []
-    count = res?.response?.count || 0
-  } catch (error) {
-    console.error("Error al obtener productos:", error)
+  } else if (sortBy === "price_desc") {
+    displayedProducts.sort((a, b) => {
+      const priceA = a.variants?.[0]?.calculated_price?.calculated_amount ?? 0
+      const priceB = b.variants?.[0]?.calculated_price?.calculated_amount ?? 0
+      return priceB - priceA
+    })
   }
 
-  // Si el usuario buscó por la barra (?q=...), filtramos el lote recibido
-  let displayedProducts = products
+  // Filtrado de búsqueda si existe q
   if (q && q.trim()) {
     const term = q.trim().toLowerCase()
-    displayedProducts = products.filter((p) => {
-      const title = (p?.title || "").toLowerCase()
-      const desc = (p?.description || "").toLowerCase()
-      const handle = (p?.handle || "").toLowerCase()
+    displayedProducts = displayedProducts.filter((p) => {
+      const title = (p.title || "").toLowerCase()
+      const desc = (p.description || "").toLowerCase()
+      const handle = (p.handle || "").toLowerCase()
       return title.includes(term) || desc.includes(term) || handle.includes(term)
     })
   }
 
-  const totalPages = Math.ceil(
-    (q ? displayedProducts.length : count) / PRODUCT_LIMIT
-  ) || 1
+  const totalCount = q ? displayedProducts.length : count
+  const totalPages = Math.ceil(totalCount / PRODUCT_LIMIT) || 1
 
   if (displayedProducts.length === 0) {
     return (
