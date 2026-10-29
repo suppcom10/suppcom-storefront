@@ -1,105 +1,20 @@
 
-import { listProductsWithSort } from "@lib/data/products"
-import ProductPreview from "@modules/products/components/product-preview"
-import { Pagination } from "@modules/store/components/pagination"
-import { SortOptions } from "@modules/store/components/refinement-list/sort-products"
-
-const PRODUCT_LIMIT = 12
-
-type PaginatedProductsParams = {
-  limit: number
-  collection_id?: string[]
-  category_id?: string[]
-  id?: string[]
-  order?: string
-  q?: string
+const SEARCH_ALIASES: Record<string, string> = {
+  lenvo: "Lenovo",
+  lenobo: "Lenovo",
+  lenov: "Lenovo",
+  asuss: "ASUS",
+  asu: "ASUS",
+  hppt: "HP",
+  "hewlet packard": "HP",
 }
 
-export default async function PaginatedProducts({
-  sortBy,
-  page,
-  collectionId,
-  categoryId,
-  productsIds,
-  countryCode,
-  q,
-}: {
-  sortBy?: SortOptions
-  page: number
-  collectionId?: string
-  categoryId?: string
-  productsIds?: string[]
-  countryCode: string
-  q?: string
-}) {
-  const queryParams: PaginatedProductsParams = {
-    limit: PRODUCT_LIMIT,
+function normalizeSearchTerm(value?: string) {
+  const term = value?.trim().toLocaleLowerCase("es-PE")
+
+  if (!term) {
+    return ""
   }
 
-  if (collectionId) {
-    queryParams.collection_id = [collectionId]
-  }
-
-  if (categoryId) {
-    queryParams.category_id = [categoryId]
-  }
-
-  if (productsIds?.length) {
-    queryParams.id = productsIds
-  }
-
-  if (sortBy === "created_at") {
-    queryParams.order = "created_at"
-  }
-
-  const searchTerm = q?.trim()
-
-  if (searchTerm) {
-    queryParams.q = searchTerm
-  }
-
-  const {
-    response: { products, count },
-  } = await listProductsWithSort({
-    page,
-    queryParams,
-    sortBy,
-    countryCode,
-  })
-
-  const totalPages = Math.ceil(count / PRODUCT_LIMIT)
-
-  return (
-    <>
-      {products.length > 0 ? (
-        <ul
-          className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
-          data-testid="products-list"
-        >
-          {products.map((product) => (
-            <li key={product.id}>
-              <ProductPreview
-                product={product}
-                countryCode={countryCode}
-              />
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="py-10 text-center text-ui-fg-subtle">
-          {searchTerm
-            ? `No encontramos productos para "${searchTerm}".`
-            : "No hay productos disponibles."}
-        </p>
-      )}
-
-      {totalPages > 1 && (
-        <Pagination
-          data-testid="product-pagination"
-          page={page}
-          totalPages={totalPages}
-        />
-      )}
-    </>
-  )
+  return SEARCH_ALIASES[term] ?? value!.trim()
 }
