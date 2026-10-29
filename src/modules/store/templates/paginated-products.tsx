@@ -23,7 +23,7 @@ export default async function PaginatedProducts({
   q?: string
 }) {
   const queryParams: Record<string, any> = {
-    limit: 50,
+    limit: 20,
   }
 
   if (collectionId) {
@@ -38,16 +38,12 @@ export default async function PaginatedProducts({
     queryParams["id"] = productsIds
   }
 
-  if (sortBy === "created_at") {
-    queryParams["order"] = "created_at"
-  }
-
   let products: any[] = []
   let count: number = 0
 
   try {
     const res = await getProductsListWithSort({
-      page: 1,
+      page,
       queryParams,
       sortBy,
       countryCode,
@@ -59,57 +55,62 @@ export default async function PaginatedProducts({
     console.error("Error al obtener productos:", error)
   }
 
-  // Filtrado flexible por coincidencia de texto
-  if (q && q.trim()) {
-    const term = q.trim().toLowerCase()
-    products = products.filter((product) => {
-      const title = (product.title || "").toLowerCase()
-      const description = (product.description || "").toLowerCase()
-      const handle = (product.handle || "").toLowerCase()
-
-      return (
-        title.includes(term) ||
-        description.includes(term) ||
-        handle.includes(term)
-      )
-    })
-    count = products.length
+  // Si no hay término de búsqueda, render normal
+  if (!q || !q.trim()) {
+    const totalPages = Math.ceil(count / PRODUCT_LIMIT)
+    return (
+      <>
+        <ul
+          className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
+          data-testid="products-list"
+        >
+          {products.map((p) => (
+            <li key={p.id}>
+              <ProductPreview product={p} countryCode={countryCode} />
+            </li>
+          ))}
+        </ul>
+        {totalPages > 1 && (
+          <Pagination
+            data-testid="product-pagination"
+            page={page}
+            totalPages={totalPages}
+          />
+        )}
+      </>
+    )
   }
 
-  const totalPages = Math.ceil(count / PRODUCT_LIMIT)
+  // Si HAY búsqueda, filtramos revisando todos los textos posibles del producto
+  const cleanQ = q.trim().toLowerCase()
+  const filteredProducts = products.filter((p) => {
+    const serialized = JSON.stringify(p).toLowerCase()
+    return serialized.includes(cleanQ)
+  })
 
-  if (products.length === 0) {
+  if (filteredProducts.length === 0) {
     return (
-      <div className="py-16 text-center text-neutral-500">
+      <div className="py-16 text-center text-neutral-500 w-full col-span-full">
         <p className="text-base font-semibold text-neutral-800">
-          No se encontraron productos para "{q}".
+          No se encontraron productos para "{q}"[cite: 18].
         </p>
         <p className="text-xs text-neutral-400 mt-1">
-          Intenta con otro término o explora las categorías del catálogo.
+          Productos evaluados en esta página: {products.length}.
         </p>
       </div>
     )
   }
 
   return (
-    <>
-      <ul
-        className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
-        data-testid="products-list"
-      >
-        {products.map((p) => (
-          <li key={p.id}>
-            <ProductPreview product={p} countryCode={countryCode} />
-          </li>
-        ))}
-      </ul>
-      {totalPages > 1 && (
-        <Pagination
-          data-testid="product-pagination"
-          page={page}
-          totalPages={totalPages}
-        />
-      )}
-    </>
+    <ul
+      className="grid grid-cols-2 w-full small:grid-cols-3 medium:grid-cols-4 gap-x-6 gap-y-8"
+      data-testid="products-list"
+    >
+      {filteredProducts.map((p) => (
+        <li key={p.id}>
+          <ProductPreview product={p} countryCode={countryCode} />
+        </li>
+      ))}
+    </ul>
   )
 }
