@@ -10,6 +10,7 @@ type PaginatedProductsParams = {
   collection_id?: string[]
   category_id?: string[]
   id?: string[]
+  order?: string
 }
 
 export default async function PaginatedProducts({
@@ -45,36 +46,51 @@ export default async function PaginatedProducts({
     queryParams["id"] = productsIds
   }
 
-  const {
-    response: { products, count },
-  } = await getProductsListWithSort({
-    page,
-    queryParams,
-    sortBy,
-    countryCode,
-  })
+  if (sortBy === "created_at") {
+    queryParams["order"] = "created_at"
+  }
 
-  // Filtrado de productos por coincidencia de texto
-  let displayedProducts = products || []
+  let products: any[] = []
+  let totalCount = 0
+
+  try {
+    const result = await getProductsListWithSort({
+      page,
+      queryParams,
+      sortBy,
+      countryCode,
+    })
+
+    if (result && result.response) {
+      products = result.response.products || []
+      totalCount = result.response.count || products.length
+    }
+  } catch (error) {
+    console.error("Error al obtener productos desde Medusa:", error)
+  }
+
+  // Filtrado resiliente cuando existe un término de búsqueda
+  let displayedProducts = products
 
   if (q && q.trim()) {
-    const cleanQ = q.trim().toLowerCase()
-    displayedProducts = displayedProducts.filter((product) => {
+    const term = q.trim().toLowerCase()
+
+    displayedProducts = products.filter((product) => {
       const title = (product?.title || "").toLowerCase()
       const description = (product?.description || "").toLowerCase()
       const handle = (product?.handle || "").toLowerCase()
 
       return (
-        title.includes(cleanQ) ||
-        description.includes(cleanQ) ||
-        handle.includes(cleanQ)
+        title.includes(term) ||
+        description.includes(term) ||
+        handle.includes(term)
       )
     })
+
+    totalCount = displayedProducts.length
   }
 
-  const totalPages = Math.ceil(
-    (q ? displayedProducts.length : count) / PRODUCT_LIMIT
-  )
+  const totalPages = Math.ceil(totalCount / PRODUCT_LIMIT) || 1
 
   if (displayedProducts.length === 0) {
     return (
@@ -83,7 +99,7 @@ export default async function PaginatedProducts({
           No se encontraron productos para {q ? `"${q}"` : "esta categoría"}.
         </p>
         <p className="text-xs text-neutral-400 mt-1">
-          Intenta con otro término o explora las categorías del catálogo[cite: 20].
+          Intenta con otro término o explora las categorías del catálogo.
         </p>
       </div>
     )
