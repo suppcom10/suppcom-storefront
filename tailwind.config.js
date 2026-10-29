@@ -60,6 +60,7 @@ module.exports = {
       },
       fontFamily: {
         sans: [
+          "var(--font-inter)",
           "Inter",
           "-apple-system",
           "BlinkMacSystemFont",
@@ -67,6 +68,13 @@ module.exports = {
           "Roboto",
           "Helvetica Neue",
           "Ubuntu",
+          "sans-serif",
+        ],
+        brand: [
+          "var(--font-fredoka)",
+          "Fredoka",
+          "-apple-system",
+          "BlinkMacSystemFont",
           "sans-serif",
         ],
       },
