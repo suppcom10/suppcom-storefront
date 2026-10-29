@@ -23,12 +23,7 @@ export default async function PaginatedProducts({
   q?: string
 }) {
   const queryParams: Record<string, any> = {
-    limit: PRODUCT_LIMIT,
-  }
-
-  // Delegar el término a la consulta de Medusa
-  if (q && q.trim()) {
-    queryParams["q"] = q.trim()
+    limit: 50,
   }
 
   if (collectionId) {
@@ -52,7 +47,7 @@ export default async function PaginatedProducts({
 
   try {
     const res = await getProductsListWithSort({
-      page,
+      page: 1,
       queryParams,
       sortBy,
       countryCode,
@@ -64,10 +59,10 @@ export default async function PaginatedProducts({
     console.error("Error al obtener productos:", error)
   }
 
-  // Si Medusa devuelve la lista sin filtrar por q, aplicar filtro secundario
-  if (q && q.trim() && products.length > 0) {
+  // Filtrado flexible por coincidencia de texto
+  if (q && q.trim()) {
     const term = q.trim().toLowerCase()
-    const filtered = products.filter((product) => {
+    products = products.filter((product) => {
       const title = (product.title || "").toLowerCase()
       const description = (product.description || "").toLowerCase()
       const handle = (product.handle || "").toLowerCase()
@@ -75,15 +70,10 @@ export default async function PaginatedProducts({
       return (
         title.includes(term) ||
         description.includes(term) ||
-        handle.includes(term) ||
-        (term.includes("lenov") && title.includes("lenovo"))
+        handle.includes(term)
       )
     })
-
-    if (filtered.length > 0) {
-      products = filtered
-      count = filtered.length
-    }
+    count = products.length
   }
 
   const totalPages = Math.ceil(count / PRODUCT_LIMIT)
@@ -92,10 +82,10 @@ export default async function PaginatedProducts({
     return (
       <div className="py-16 text-center text-neutral-500">
         <p className="text-base font-semibold text-neutral-800">
-          No se encontraron productos para {q ? `"${q}"` : "esta categoría"}[cite: 26].
+          No se encontraron productos para "{q}".
         </p>
         <p className="text-xs text-neutral-400 mt-1">
-          Intenta con otro término o explora las categorías del catálogo[cite: 26].
+          Intenta con otro término o explora las categorías del catálogo.
         </p>
       </div>
     )
