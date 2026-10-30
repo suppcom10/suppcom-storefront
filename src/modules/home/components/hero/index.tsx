@@ -14,7 +14,7 @@ const categories = [
   },
   {
     name: "PC Armadas",
-    badge: "Custom Gamer & Trabajo",
+    badge: "Gamer, Estudio & Trabajo",
     color: "hover:border-amber-500 hover:shadow-amber-500/10 text-neutral-800 hover:text-amber-600",
     iconBg: "group-hover:bg-amber-50 group-hover:text-amber-600",
     icon: (
@@ -102,7 +102,7 @@ export default function Hero() {
           </LocalizedClientLink>
 
           <a
-            href="https://wa.me/519XXXXXXXX?text=Hola%20SuppCom,%20deseo%20cotizar"
+            href="https://wa.me/51941325886?text=Hola%20SuppCom,%20deseo%20cotizar"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-neutral-300 hover:border-neutral-400 text-neutral-800 font-semibold rounded-lg transition-all text-xs"
