@@ -37,7 +37,7 @@ export default async function Nav() {
             <span className="hidden sm:inline">Garantía local y soporte técnico</span>
             <span className="hidden sm:inline text-neutral-600">|</span>
             <a
-              href="https://wa.me/519XXXXXXXX?text=Hola%20SuppCom,%20deseo%20hacer%20una%20consulta"
+              href="https://wa.me/51941325886?text=Hola%20SuppCom,%20deseo%20hacer%20una%20consulta"
               target="_blank"
               rel="noopener noreferrer"
               className="text-white hover:text-emerald-400 font-semibold flex items-center gap-1 transition-colors"
