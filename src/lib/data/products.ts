@@ -8,7 +8,7 @@ import { SortOptions } from "@modules/store/components/refinement-list/sort-prod
 import { getAuthHeaders } from "./cookies"
 import { getRegion, retrieveRegion } from "./regions"
 
-const PRODUCT_REVALIDATE_SECONDS = 900
+const PRODUCT_REVALIDATE_SECONDS = 21600
 
 export const listProducts = async ({
   pageParam = 1,
