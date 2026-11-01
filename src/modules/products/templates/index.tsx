@@ -35,11 +35,23 @@ function getSpecifications(product: HttpTypes.StoreProduct) {
     product.description,
   ].filter(Boolean).join(" ")
 
-  const processor = findSpec(source, [
-    /Intel\s+Core\s+Ultra\s+[3579]\s+\d{3}[A-Z0-9]*/i,
-    /Intel\s+Core\s+i[3579][-\s]?\d{4,5}[A-Z0-9]*/i,
-    /AMD\s+Ryzen\s+(?:AI\s+)?[3579]\s+\d{4}[A-Z0-9]*/i,
-  ])
+  
+const processorMatch = findSpec(source, [
+  /Intel\s+Core\s+Ultra\s+[3579]\s+\d{3}[A-Z0-9]*/i,
+  /\bCore\s+Ultra\s+[3579]\s+\d{3}[A-Z0-9]*/i,
+  /\bUltra\s+[3579]\s+\d{3}[A-Z0-9]*/i,
+  /Intel\s+Core\s+i[3579][-\s]?\d{4,5}[A-Z0-9]*/i,
+  /AMD\s+Ryzen\s+(?:AI\s+)?[3579]\s+\d{4,5}[A-Z0-9]*/i,
+])
+
+const processor = processorMatch
+  ? /^Ultra\s/i.test(processorMatch)
+    ? `Intel Core ${processorMatch}`
+    : /^Core\s+Ultra/i.test(processorMatch)
+    ? `Intel ${processorMatch}`
+    : processorMatch
+  : null
+
 
   const ram = findSpec(source, [
     /\d{1,3}\s*GB\s*DDR[345]/i,
