@@ -131,7 +131,7 @@ export default function ProductActions({
   }
 
   // Preparar mensaje para WhatsApp
-  const whatsappNumber = "519XXXXXXXX" // Reemplaza con los 9 dígitos de SuppCom
+  const whatsappNumber = "51941325886" // Reemplaza con los 9 dígitos de SuppCom
   const variantTitle = selectedVariant?.title && selectedVariant.title !== "Default variant" 
     ? ` (${selectedVariant.title})` 
     : ""
