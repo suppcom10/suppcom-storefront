@@ -34,6 +34,8 @@ function findSpec(text: string, expressions: RegExp[]): string | null {
 
 function normalizeProcessor(raw: string): string {
   const clean = raw.trim().toUpperCase()
+
+  // Traduce códigos cortos de mayorista (ej. U7356H -> Intel Core Ultra 7)
   if (/^U[3579]\d{3}[A-Z]*/i.test(clean)) {
     const tier = clean.charAt(1)
     const model = clean.slice(2)
@@ -81,6 +83,7 @@ function getSpecifications(product: HttpTypes.StoreProduct): SpecItem[] {
       /\d{1,3}\s*GB\s*(?:RAM|LPDDR[345X]*)/i,
     ]) ||
     (() => {
+      // Detecta patrón de barra de mayorista: /32/1/ -> 32GB RAM
       const slashMatch = source.match(/\/(8|16|24|32|48|64|96|128)\/(?:512|1|2|4)/)
       return slashMatch ? `${slashMatch[1]}GB RAM` : null
     })()
@@ -127,6 +130,7 @@ function getSpecifications(product: HttpTypes.StoreProduct): SpecItem[] {
       ? "Linux Ubuntu"
       : null)
 
+  // Orden de prioridad de conversión en hardware: CPU -> GPU -> RAM -> SSD -> Pantalla -> SO
   const rawList: { label: string; value: string | null; icon: SpecKey }[] = [
     { label: "Procesador", value: processor, icon: "CPU" },
     { label: "Tarjeta gráfica", value: graphics, icon: "GPU" },
@@ -180,7 +184,7 @@ function SpecIcon({ type }: { type: SpecKey }) {
     case "SO":
       return (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" d="M4 5.5L11 4.5v6.5H4V5.5zm8-1.1L20 3v8h-8V4.4zM4 12.5h7V19l-7-1v-5.5zm8 0h8V21l-8-1.2v-7.3z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 5.5L11 4.5v6.5H4V5.5zm8-1.1L20 3v8h-8V4.4zM4 12.5h7V19l-7-1v-5.5zm8 0h8V21l-8-1.2v-7.3z" />
         </svg>
       )
   }
@@ -199,9 +203,10 @@ export default function ProductTemplate({
   const rawTitle = product.title || "Producto SUPPCOM"
   const baseName = rawTitle.includes("/") ? rawTitle.split("/")[0].trim() : rawTitle
 
+  // Limpia el separador [@@@] propio de Deltron si viene en la descripción
   const rawDescription = product.description?.trim() || ""
   const cleanDescription = rawDescription
-    .replace(/[@@@]/g, "\n\n")
+    .replace(/\[@@@\]/g, "\n\n")
     .replace(/<br\s*\/?>/gi, "\n")
     .trim()
 
@@ -216,6 +221,12 @@ export default function ProductTemplate({
     (product.metadata?.part_number as string | undefined) ||
     variant?.barcode ||
     null
+
+  // Construye un título comercial más rico al estilo Newegg / Memory Kings
+  const keySummary = specs
+    .slice(0, 4)
+    .map((s) => s.value)
+    .join(" · ")
 
   const displayTitle = shortHeadline || baseName
   const photos = (images || []).filter(
@@ -254,25 +265,55 @@ export default function ProductTemplate({
           </span>
         </nav>
 
-        {/* Encabezado ultra limpio sin caja de SKU */}
+        {/* Encabezado de Alto Impacto */}
         <header className="mb-6 rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm small:p-6">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-md bg-[#FFF0F3] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#E6003D]">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#E6003D]" />
-              {product.subtitle || "Hardware Certificado"}
-            </span>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-[#FFF0F3] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#E6003D]">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#E6003D]" />
+                {product.subtitle || "Hardware Certificado"}
+              </span>
 
-            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-              ✓ Producto 100% Original y Sellado
-            </span>
+              <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                ✓ Producto 100% Original y Sellado
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+              {sku && (
+                <span className="rounded-md bg-gray-100 px-2.5 py-1 font-mono text-[11px] font-medium text-gray-700">
+                  SKU: <strong className="text-gray-900">{sku}</strong>
+                </span>
+              )}
+              {partNumber && (
+                <span className="rounded-md bg-gray-100 px-2.5 py-1 font-mono text-[11px] font-medium text-gray-700">
+                  P/N: <strong className="text-gray-900">{partNumber}</strong>
+                </span>
+              )}
+            </div>
           </div>
 
           <h1 className="mt-3 text-xl font-extrabold leading-snug tracking-tight text-gray-900 small:text-2xl large:text-[26px]">
             {displayTitle}
           </h1>
+
+          {/* Subtítulo automático con resumen de hardware o código de configuración */}
+          {(keySummary || rawTitle !== baseName) && (
+            <p className="mt-1.5 text-xs font-medium text-gray-500 small:text-sm">
+              {keySummary ? (
+                <span className="text-gray-700">{keySummary}</span>
+              ) : null}
+              {keySummary && rawTitle !== baseName ? "  |  " : null}
+              {rawTitle !== baseName ? (
+                <span className="font-mono text-xs text-gray-400">
+                  Config: {rawTitle}
+                </span>
+              ) : null}
+            </p>
+          )}
         </header>
 
-        {/* Distribución Principal (Alineada perfectamente desde arriba) */}
+        {/* Distribución Principal (3 Columnas estilo Newegg / B&H) */}
         <div className="grid grid-cols-1 items-start gap-6 large:grid-cols-12">
           {/* COLUMNA 1: Fotografías (5 cols) */}
           <section
@@ -284,8 +325,9 @@ export default function ProductTemplate({
             </div>
           </section>
 
-          {/* COLUMNA 2: Especificaciones Clave (4 cols) - Alineada arriba */}
+          {/* COLUMNA 2: Especificaciones de Impacto + Logística Perú (4 cols) */}
           <section className="min-w-0 space-y-4 large:col-span-4">
+            {/* Tarjeta de Especificaciones Clave */}
             <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-3">
                 <div className="flex items-center gap-2">
@@ -325,7 +367,7 @@ export default function ProductTemplate({
                 <div className="rounded-xl bg-gray-50 p-4 text-sm leading-relaxed text-gray-600">
                   {cleanDescription
                     ? cleanDescription.slice(0, 220) + (cleanDescription.length > 220 ? "..." : "")
-                    : "Equipo nuevo y original con garantía oficial en Perú."}
+                    : "Equipo nuevo y original con garantía oficial en Perú. Revisa los detalles técnicos en la parte inferior."}
                 </div>
               )}
 
@@ -343,7 +385,7 @@ export default function ProductTemplate({
               </div>
             </div>
 
-            {/* Logística y Despacho */}
+            {/* Tarjeta de Logística y Despacho (Reemplaza el bloque gris repetido de SKU) */}
             <div className="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm">
               <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-800">
                 Opciones de entrega y recojo
@@ -354,8 +396,8 @@ export default function ProductTemplate({
                     🚚
                   </span>
                   <div>
-                    <strong className="text-gray-900">Despacho rápido en Lima:</strong>{" "}
-                    Entrega segura a domicilio u oficina en 24 a 48 horas.
+                    <strong className="text-gray-900">Despacho rápido en Lima Metropolitana:</strong>{" "}
+                    Entrega segura a domicilio u oficina en 24 a 48 horas hábiles.
                   </div>
                 </li>
                 <li className="flex items-start gap-2.5">
@@ -364,7 +406,7 @@ export default function ProductTemplate({
                   </span>
                   <div>
                     <strong className="text-gray-900">Envíos a todo el Perú:</strong>{" "}
-                    Despachos asegurados vía Olva Courier o Shalom.
+                    Despachos embalados con seguro a provincias vía Olva Courier o Shalom.
                   </div>
                 </li>
                 <li className="flex items-start gap-2.5">
@@ -372,18 +414,19 @@ export default function ProductTemplate({
                     🏢
                   </span>
                   <div>
-                    <strong className="text-gray-900">Ventas Corporativas (RUC 20):</strong>{" "}
-                    Factura electrónica inmediata.
+                    <strong className="text-gray-900">Atención Corporativa (RUC 20):</strong>{" "}
+                    Emitimos Factura Electrónica con IGV desglosado y cotizaciones formales.
                   </div>
                 </li>
               </ul>
             </div>
           </section>
 
-          {/* COLUMNA 3: Buy Box de Alta Conversión (3 cols) - Alineada arriba */}
+          {/* COLUMNA 3: Buy Box de Alta Conversión (3 cols) */}
           <aside className="min-w-0 large:col-span-3">
             <div className="large:sticky large:top-24">
               <div className="overflow-hidden rounded-2xl border-2 border-gray-900/10 bg-white shadow-md">
+                {/* Cabecera de Estado de Stock en Vivo */}
                 <div className="flex items-center justify-between border-b border-gray-100 bg-gradient-to-r from-[#FFF5F7] to-white px-4 py-3">
                   <div>
                     <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#E6003D]">
@@ -400,6 +443,7 @@ export default function ProductTemplate({
                   </span>
                 </div>
 
+                {/* Cuerpo de Acciones de Medusa (Precio + Botones) */}
                 <div className="p-4 small:p-5">
                   <Suspense
                     fallback={
@@ -413,6 +457,7 @@ export default function ProductTemplate({
                     <ProductActionsWrapper id={product.id} region={region} />
                   </Suspense>
 
+                  {/* Nota de Medios de Pago Locales */}
                   <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50/80 p-3">
                     <p className="text-[11px] font-semibold text-gray-700">
                       Medios de pago aceptados:
@@ -431,6 +476,7 @@ export default function ProductTemplate({
                   </div>
                 </div>
 
+                {/* Pie de Garantías */}
                 <div className="border-t border-gray-100 bg-[#FAFAFA] px-4 py-4">
                   <h3 className="mb-2.5 text-[11px] font-extrabold uppercase tracking-wider text-gray-800">
                     Respaldo SUPPCOM Perú
@@ -444,7 +490,7 @@ export default function ProductTemplate({
                       <div>
                         <p className="font-semibold text-gray-900">Garantía Oficial Local</p>
                         <p className="text-[11px] text-gray-500">
-                          Soporte técnico directo en Lima
+                          Respaldo directo de marca y soporte técnico en Lima
                         </p>
                       </div>
                     </div>
@@ -454,9 +500,21 @@ export default function ProductTemplate({
                         ✓
                       </span>
                       <div>
-                        <p className="font-semibold text-gray-900">Boleta o Factura</p>
+                        <p className="font-semibold text-gray-900">Boleta o Factura Electrónica</p>
                         <p className="text-[11px] text-gray-500">
-                          Crédito fiscal válido (RUC 20)
+                          Comprobante SUNAT válido para crédito fiscal (RUC 20)
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#FFF0F3] text-[10px] font-bold text-[#E6003D]">
+                        ✓
+                      </span>
+                      <div>
+                        <p className="font-semibold text-gray-900">Compra 100% Protegida</p>
+                        <p className="text-[11px] text-gray-500">
+                          Atención personalizada por ingenieros especialistas
                         </p>
                       </div>
                     </div>
@@ -467,7 +525,7 @@ export default function ProductTemplate({
           </aside>
         </div>
 
-        {/* SECCIÓN INFERIOR: Tabla Zebra Completa */}
+        {/* SECCIÓN INFERIOR: Ficha Técnica Completa y Tabla Zebra */}
         <section
           id="especificaciones"
           className="mt-12 scroll-mt-24"
@@ -483,6 +541,7 @@ export default function ProductTemplate({
             </div>
 
             <div className="grid grid-cols-1 gap-8 large:grid-cols-12">
+              {/* Descripción y Características */}
               <article className="large:col-span-7">
                 <h3 className="mb-3 text-base font-bold text-gray-900">
                   Descripción General
@@ -494,9 +553,10 @@ export default function ProductTemplate({
                 </div>
               </article>
 
+              {/* Tabla Zebra de Identificación y Ficha */}
               <div className="large:col-span-5">
                 <h3 className="mb-3 text-base font-bold text-gray-900">
-                  Ficha de Identificación (SKU y P/N Oficiales)
+                  Ficha de Identificación
                 </h3>
 
                 <div className="overflow-hidden rounded-xl border border-gray-200">
@@ -508,4 +568,74 @@ export default function ProductTemplate({
 
                     {sku && (
                       <div className="grid grid-cols-3 bg-white px-4 py-3">
-                        <dt className="font-semibold text-gray-500">SKU SUPPCOM</
+                        <dt className="font-semibold text-gray-500">SKU SUPPCOM</dt>
+                        <dd className="col-span-2 font-mono font-semibold text-gray-800">{sku}</dd>
+                      </div>
+                    )}
+
+                    {partNumber && (
+                      <div className="grid grid-cols-3 bg-gray-50 px-4 py-3">
+                        <dt className="font-semibold text-gray-500">Part Number</dt>
+                        <dd className="col-span-2 font-mono font-semibold text-gray-800">
+                          {partNumber}
+                        </dd>
+                      </div>
+                    )}
+
+                    {product.subtitle && (
+                      <div className="grid grid-cols-3 bg-white px-4 py-3">
+                        <dt className="font-semibold text-gray-500">Marca / Línea</dt>
+                        <dd className="col-span-2 font-medium text-gray-800">
+                          {product.subtitle}
+                        </dd>
+                      </div>
+                    )}
+
+                    {specs.map((spec, idx) => (
+                      <div
+                        key={spec.label}
+                        className={`grid grid-cols-3 px-4 py-3 ${
+                          idx % 2 === 0 ? "bg-gray-50" : "bg-white"
+                        }`}
+                      >
+                        <dt className="font-semibold text-gray-500">{spec.label}</dt>
+                        <dd className="col-span-2 font-semibold text-gray-900">
+                          {spec.value}
+                        </dd>
+                      </div>
+                    ))}
+
+                    <div className="grid grid-cols-3 bg-white px-4 py-3">
+                      <dt className="font-semibold text-gray-500">Condición</dt>
+                      <dd className="col-span-2 font-semibold text-emerald-700">
+                        Nuevo en caja sellada
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* Productos Relacionados */}
+      <section className="mx-auto my-10 w-full max-w-[1440px] px-4 small:px-6 large:px-8">
+        <div className="mb-6 flex items-center justify-between border-b border-gray-200 pb-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-[#E6003D]">
+              Alternativas Recomendadas
+            </p>
+            <h2 className="mt-1 text-xl font-extrabold text-gray-900 small:text-2xl">
+              También te puede interesar
+            </h2>
+          </div>
+        </div>
+
+        <Suspense fallback={<SkeletonRelatedProducts />}>
+          <RelatedProducts product={product} countryCode={countryCode} />
+        </Suspense>
+      </section>
+    </div>
+  )
+}
