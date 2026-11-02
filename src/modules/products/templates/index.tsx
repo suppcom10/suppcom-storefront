@@ -235,11 +235,11 @@ export default function ProductTemplate({
 
   return (
     <div className="w-full bg-[#FAFAFA] text-[#171717]">
-      <main className="mx-auto w-full max-w-[1440px] px-4 pb-14 pt-3 small:px-6 large:px-8">
+      <main className="mx-auto w-full max-w-[1440px] px-4 pb-14 pt-2 small:px-6 large:px-8">
         {/* Breadcrumb */}
         <nav
           aria-label="Ruta de navegación"
-          className="mb-2.5 flex flex-wrap items-center gap-2 text-xs text-gray-500"
+          className="mb-2 flex flex-wrap items-center gap-2 text-xs text-gray-500"
         >
           <Link href={`/${countryCode}`} className="transition-colors hover:text-[#E6003D]">
             Inicio
@@ -265,62 +265,52 @@ export default function ProductTemplate({
           </span>
         </nav>
 
-        {/* Encabezado compacto: título, resumen y SKU en el mismo flujo */}
-        <header className="mb-3 rounded-2xl border border-gray-200/80 bg-white px-4 py-3 shadow-sm small:px-5 small:py-4">
-          <div className="flex flex-wrap items-center gap-2">
-            {product.subtitle && (
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-[#FFF0F3] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-[#E6003D]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#E6003D]" />
-                {product.subtitle}
-              </span>
-            )}
-            <span className="inline-flex items-center rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-              ✓ Equipos originales · Garantía local
-            </span>
-          </div>
-
-          <h1 className="mt-2 text-xl font-extrabold leading-tight tracking-tight text-gray-900 small:text-[25px]">
-            {displayTitle}
-          </h1>
-
-          {keySummary && (
-            <p className="mt-1 text-xs font-medium leading-relaxed text-gray-700 small:text-sm">
-              {keySummary}
-            </p>
-          )}
-
-          {(sku || partNumber) && (
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-500">
-              {sku && (
-                <span>
-                  SKU: <strong className="font-mono font-semibold text-gray-800">{sku}</strong>
-                </span>
-              )}
-              {partNumber && partNumber !== sku && (
-                <span>
-                  P/N: <strong className="font-mono font-semibold text-gray-800">{partNumber}</strong>
-                </span>
-              )}
-            </div>
-          )}
-        </header>
-
         {/* Distribución Principal (3 Columnas estilo Newegg / B&H) */}
-        <div className="grid grid-cols-1 items-start gap-4 large:grid-cols-12 large:gap-5">
+        <div className="grid grid-cols-1 items-start gap-3 large:grid-cols-12 large:gap-4">
           {/* COLUMNA 1: Fotografías (5 cols) */}
           <section
             aria-label="Galería de fotografías"
             className="min-w-0 large:col-span-5"
           >
-            <div className="rounded-2xl border border-gray-200/80 bg-white p-3 shadow-sm small:p-4">
+            <div className="rounded-2xl border border-gray-200/80 bg-white p-2 shadow-sm small:p-3">
               <ProductGallery images={photos} title={displayTitle} />
             </div>
           </section>
 
-          {/* COLUMNA 2: Especificaciones de Impacto + Logística Perú (4 cols) */}
-          <section className="min-w-0 space-y-4 large:col-span-4">
+          {/* COLUMNA 2: Identidad del producto y especificaciones (4 cols) */}
+          <section className="min-w-0 space-y-3 large:col-span-4">
+            {/* Título integrado: elimina el encabezado a todo lo ancho */}
+            <header className="rounded-2xl border border-gray-200/80 bg-white px-4 py-3.5 shadow-sm">
+              <div className="flex flex-wrap items-center gap-1.5">
+                {product.subtitle && (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-[#FFF0F3] px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-[#E6003D]">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#E6003D]" />
+                    {product.subtitle}
+                  </span>
+                )}
+                <span className="rounded-md bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700">
+                  Garantía local
+                </span>
+              </div>
+              <h1 className="mt-2 text-xl font-extrabold leading-tight tracking-tight text-gray-950 small:text-[24px]">
+                {displayTitle}
+              </h1>
+              {keySummary && (
+                <p className="mt-1.5 text-xs font-medium leading-5 text-gray-700">
+                  {keySummary}
+                </p>
+              )}
+              {(sku || partNumber) && (
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-500">
+                  {sku && <span>SKU: <strong className="font-mono text-gray-800">{sku}</strong></span>}
+                  {partNumber && partNumber !== sku && (
+                    <span>P/N: <strong className="font-mono text-gray-800">{partNumber}</strong></span>
+                  )}
+                </div>
+              )}
+            </header>
             {/* Tarjeta de Especificaciones Clave */}
-            <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm">
               <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-3">
                 <div className="flex items-center gap-2">
                   <span className="h-4 w-1 rounded-full bg-[#E6003D]" />
@@ -334,11 +324,11 @@ export default function ProductTemplate({
               </div>
 
               {specs.length > 0 ? (
-                <dl className="grid grid-cols-1 gap-2.5">
+                <dl className="grid grid-cols-1 gap-2">
                   {specs.map((spec) => (
                     <div
                       key={spec.label}
-                      className="flex items-center gap-3.5 rounded-xl border border-gray-100 bg-[#FCFCFC] p-3 transition-colors hover:border-red-100 hover:bg-[#FFF9FA]"
+                      className="flex items-center gap-3.5 rounded-xl border border-gray-100 bg-[#FCFCFC] px-3 py-2.5 transition-colors hover:border-red-100 hover:bg-[#FFF9FA]"
                     >
                       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FFF0F3] text-[#E6003D] shadow-xs">
                         <SpecIcon type={spec.icon} />
@@ -448,7 +438,7 @@ export default function ProductTemplate({
                     <ProductActionsWrapper id={product.id} region={region} />
                   </Suspense>
 
-                  {/* Nota de Medios de Pago Locales */}
+                  {/* Mostrar solamente si estos medios de pago están habilitados en SUPPCOM */}
                   <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50/80 p-3">
                     <p className="text-[11px] font-semibold text-gray-700">
                       Medios de pago aceptados:
