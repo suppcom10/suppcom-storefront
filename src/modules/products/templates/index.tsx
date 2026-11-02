@@ -180,7 +180,7 @@ function SpecIcon({ type }: { type: SpecKey }) {
     case "SO":
       return (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 5.5L11 4.5v6.5H4V5.5zm8-1.1L20 3v8h-8V4.4zM4 12.5h7V19l-7-1v-5.5zm8 0h8V21l-8-1.2v-7.3z" />
+          <path strokeLinecap="round" d="M4 5.5L11 4.5v6.5H4V5.5zm8-1.1L20 3v8h-8V4.4zM4 12.5h7V19l-7-1v-5.5zm8 0h8V21l-8-1.2v-7.3z" />
         </svg>
       )
   }
@@ -201,7 +201,7 @@ export default function ProductTemplate({
 
   const rawDescription = product.description?.trim() || ""
   const cleanDescription = rawDescription
-    .replace(/\[@@@\]/g, "\n\n")
+    .replace(/[@@@]/g, "\n\n")
     .replace(/<br\s*\/?>/gi, "\n")
     .trim()
 
@@ -254,33 +254,17 @@ export default function ProductTemplate({
           </span>
         </nav>
 
-        {/* Encabezado limpio con SKU y P/N integrados a la derecha */}
+        {/* Encabezado ultra limpio sin caja de SKU */}
         <header className="mb-6 rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm small:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-[#FFF0F3] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#E6003D]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#E6003D]" />
-                {product.subtitle || "Hardware Certificado"}
-              </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-[#FFF0F3] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#E6003D]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#E6003D]" />
+              {product.subtitle || "Hardware Certificado"}
+            </span>
 
-              <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-                ✓ Producto 100% Original y Sellado
-              </span>
-            </div>
-
-            {/* SKU y Part Number visibles en la parte superior derecha */}
-            <div className="flex flex-wrap items-center gap-2">
-              {sku && (
-                <span className="rounded-md bg-gray-100 px-3 py-1 font-mono text-xs font-semibold text-gray-800">
-                  SKU: <strong className="text-gray-900">{sku}</strong>
-                </span>
-              )}
-              {partNumber && (
-                <span className="rounded-md bg-gray-100 px-3 py-1 font-mono text-xs font-semibold text-gray-800">
-                  P/N: <strong className="text-gray-900">{partNumber}</strong>
-                </span>
-              )}
-            </div>
+            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+              ✓ Producto 100% Original y Sellado
+            </span>
           </div>
 
           <h1 className="mt-3 text-xl font-extrabold leading-snug tracking-tight text-gray-900 small:text-2xl large:text-[26px]">
@@ -288,7 +272,7 @@ export default function ProductTemplate({
           </h1>
         </header>
 
-        {/* Distribución Principal (3 Columnas perfectamente balanceadas) */}
+        {/* Distribución Principal (Alineada perfectamente desde arriba) */}
         <div className="grid grid-cols-1 items-start gap-6 large:grid-cols-12">
           {/* COLUMNA 1: Fotografías (5 cols) */}
           <section
@@ -300,7 +284,7 @@ export default function ProductTemplate({
             </div>
           </section>
 
-          {/* COLUMNA 2: Especificaciones de Impacto + Logística Perú (4 cols) */}
+          {/* COLUMNA 2: Especificaciones Clave (4 cols) - Alineada arriba */}
           <section className="min-w-0 space-y-4 large:col-span-4">
             <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-3">
@@ -396,7 +380,7 @@ export default function ProductTemplate({
             </div>
           </section>
 
-          {/* COLUMNA 3: Buy Box de Alta Conversión (Limpia y enfocada en pago) (3 cols) */}
+          {/* COLUMNA 3: Buy Box de Alta Conversión (3 cols) - Alineada arriba */}
           <aside className="min-w-0 large:col-span-3">
             <div className="large:sticky large:top-24">
               <div className="overflow-hidden rounded-2xl border-2 border-gray-900/10 bg-white shadow-md">
@@ -512,7 +496,7 @@ export default function ProductTemplate({
 
               <div className="large:col-span-5">
                 <h3 className="mb-3 text-base font-bold text-gray-900">
-                  Ficha de Identificación
+                  Ficha de Identificación (SKU y P/N Oficiales)
                 </h3>
 
                 <div className="overflow-hidden rounded-xl border border-gray-200">
@@ -524,64 +508,4 @@ export default function ProductTemplate({
 
                     {sku && (
                       <div className="grid grid-cols-3 bg-white px-4 py-3">
-                        <dt className="font-semibold text-gray-500">SKU SUPPCOM</dt>
-                        <dd className="col-span-2 font-mono font-semibold text-gray-800">{sku}</dd>
-                      </div>
-                    )}
-
-                    {partNumber && (
-                      <div className="grid grid-cols-3 bg-gray-50 px-4 py-3">
-                        <dt className="font-semibold text-gray-500">Part Number</dt>
-                        <dd className="col-span-2 font-mono font-semibold text-gray-800">
-                          {partNumber}
-                        </dd>
-                      </div>
-                    )}
-
-                    {specs.map((spec, idx) => (
-                      <div
-                        key={spec.label}
-                        className={`grid grid-cols-3 px-4 py-3 ${
-                          idx % 2 === 0 ? "bg-gray-50" : "bg-white"
-                        }`}
-                      >
-                        <dt className="font-semibold text-gray-500">{spec.label}</dt>
-                        <dd className="col-span-2 font-semibold text-gray-900">
-                          {spec.value}
-                        </dd>
-                      </div>
-                    ))}
-
-                    <div className="grid grid-cols-3 bg-white px-4 py-3">
-                      <dt className="font-semibold text-gray-500">Condición</dt>
-                      <dd className="col-span-2 font-semibold text-emerald-700">
-                        Nuevo en caja sellada
-                      </dd>
-                    </div>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <section className="mx-auto my-10 w-full max-w-[1440px] px-4 small:px-6 large:px-8">
-        <div className="mb-6 flex items-center justify-between border-b border-gray-200 pb-4">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-[#E6003D]">
-              Alternativas Recomendadas
-            </p>
-            <h2 className="mt-1 text-xl font-extrabold text-gray-900 small:text-2xl">
-              También te puede interesar
-            </h2>
-          </div>
-        </div>
-
-        <Suspense fallback={<SkeletonRelatedProducts />}>
-          <RelatedProducts product={product} countryCode={countryCode} />
-        </Suspense>
-      </section>
-    </div>
-  )
-}
+                        <dt className="font-semibold text-gray-500">SKU SUPPCOM</
