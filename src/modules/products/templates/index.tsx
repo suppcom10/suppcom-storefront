@@ -235,11 +235,11 @@ export default function ProductTemplate({
 
   return (
     <div className="w-full bg-[#FAFAFA] text-[#171717]">
-      <main className="mx-auto w-full max-w-[1440px] px-4 pb-14 pt-4 small:px-6 large:px-8">
+      <main className="mx-auto w-full max-w-[1440px] px-4 pb-14 pt-3 small:px-6 large:px-8">
         {/* Breadcrumb */}
         <nav
           aria-label="Ruta de navegación"
-          className="mb-4 flex flex-wrap items-center gap-2 text-xs text-gray-500"
+          className="mb-2.5 flex flex-wrap items-center gap-2 text-xs text-gray-500"
         >
           <Link href={`/${countryCode}`} className="transition-colors hover:text-[#E6003D]">
             Inicio
@@ -265,56 +265,48 @@ export default function ProductTemplate({
           </span>
         </nav>
 
-        {/* Encabezado de Alto Impacto */}
-        <header className="mb-6 rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm small:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-[#FFF0F3] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-[#E6003D]">
+        {/* Encabezado compacto: título, resumen y SKU en el mismo flujo */}
+        <header className="mb-3 rounded-2xl border border-gray-200/80 bg-white px-4 py-3 shadow-sm small:px-5 small:py-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {product.subtitle && (
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-[#FFF0F3] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-[#E6003D]">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#E6003D]" />
-                {product.subtitle || "Hardware Certificado"}
+                {product.subtitle}
               </span>
-
-              <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-                ✓ Producto 100% Original y Sellado
-              </span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
-              {sku && (
-                <span className="rounded-md bg-gray-100 px-2.5 py-1 font-mono text-[11px] font-medium text-gray-700">
-                  SKU: <strong className="text-gray-900">{sku}</strong>
-                </span>
-              )}
-              {partNumber && (
-                <span className="rounded-md bg-gray-100 px-2.5 py-1 font-mono text-[11px] font-medium text-gray-700">
-                  P/N: <strong className="text-gray-900">{partNumber}</strong>
-                </span>
-              )}
-            </div>
+            )}
+            <span className="inline-flex items-center rounded-md bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+              ✓ Equipos originales · Garantía local
+            </span>
           </div>
 
-          <h1 className="mt-3 text-xl font-extrabold leading-snug tracking-tight text-gray-900 small:text-2xl large:text-[26px]">
+          <h1 className="mt-2 text-xl font-extrabold leading-tight tracking-tight text-gray-900 small:text-[25px]">
             {displayTitle}
           </h1>
 
-          {/* Subtítulo automático con resumen de hardware o código de configuración */}
-          {(keySummary || rawTitle !== baseName) && (
-            <p className="mt-1.5 text-xs font-medium text-gray-500 small:text-sm">
-              {keySummary ? (
-                <span className="text-gray-700">{keySummary}</span>
-              ) : null}
-              {keySummary && rawTitle !== baseName ? "  |  " : null}
-              {rawTitle !== baseName ? (
-                <span className="font-mono text-xs text-gray-400">
-                  Config: {rawTitle}
-                </span>
-              ) : null}
+          {keySummary && (
+            <p className="mt-1 text-xs font-medium leading-relaxed text-gray-700 small:text-sm">
+              {keySummary}
             </p>
+          )}
+
+          {(sku || partNumber) && (
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-500">
+              {sku && (
+                <span>
+                  SKU: <strong className="font-mono font-semibold text-gray-800">{sku}</strong>
+                </span>
+              )}
+              {partNumber && partNumber !== sku && (
+                <span>
+                  P/N: <strong className="font-mono font-semibold text-gray-800">{partNumber}</strong>
+                </span>
+              )}
+            </div>
           )}
         </header>
 
         {/* Distribución Principal (3 Columnas estilo Newegg / B&H) */}
-        <div className="grid grid-cols-1 items-start gap-6 large:grid-cols-12">
+        <div className="grid grid-cols-1 items-start gap-4 large:grid-cols-12 large:gap-5">
           {/* COLUMNA 1: Fotografías (5 cols) */}
           <section
             aria-label="Galería de fotografías"
@@ -367,7 +359,7 @@ export default function ProductTemplate({
                 <div className="rounded-xl bg-gray-50 p-4 text-sm leading-relaxed text-gray-600">
                   {cleanDescription
                     ? cleanDescription.slice(0, 220) + (cleanDescription.length > 220 ? "..." : "")
-                    : "Equipo nuevo y original con garantía oficial en Perú. Revisa los detalles técnicos en la parte inferior."}
+                    : "Consulta los detalles técnicos y las características en la parte inferior."}
                 </div>
               )}
 
@@ -380,7 +372,7 @@ export default function ProductTemplate({
                   <span aria-hidden="true">↓</span>
                 </a>
                 <span className="text-[11px] text-gray-400">
-                  Garantía oficial en Perú
+                  Garantía local en Perú
                 </span>
               </div>
             </div>
@@ -397,7 +389,7 @@ export default function ProductTemplate({
                   </span>
                   <div>
                     <strong className="text-gray-900">Despacho rápido en Lima Metropolitana:</strong>{" "}
-                    Entrega segura a domicilio u oficina en 24 a 48 horas hábiles.
+                    Consulta las opciones y plazos de entrega según tu distrito.
                   </div>
                 </li>
                 <li className="flex items-start gap-2.5">
@@ -406,7 +398,7 @@ export default function ProductTemplate({
                   </span>
                   <div>
                     <strong className="text-gray-900">Envíos a todo el Perú:</strong>{" "}
-                    Despachos embalados con seguro a provincias vía Olva Courier o Shalom.
+                    Coordinamos el envío a provincias según el destino.
                   </div>
                 </li>
                 <li className="flex items-start gap-2.5">
@@ -433,13 +425,12 @@ export default function ProductTemplate({
                       Precio Online SUPPCOM
                     </p>
                     <p className="mt-0.5 text-[11px] text-gray-500">
-                      Incluye IGV (18%) · Stock verificado
+                      Precio en soles · Incluye IGV (18%)
                     </p>
                   </div>
 
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100/80 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
-                    <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-                    Disponible
+                  <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-700">
+                    Venta online
                   </span>
                 </div>
 
@@ -488,9 +479,9 @@ export default function ProductTemplate({
                         ✓
                       </span>
                       <div>
-                        <p className="font-semibold text-gray-900">Garantía Oficial Local</p>
+                        <p className="font-semibold text-gray-900">Garantía local</p>
                         <p className="text-[11px] text-gray-500">
-                          Respaldo directo de marca y soporte técnico en Lima
+                          Atención y soporte de SUPPCOM en Perú
                         </p>
                       </div>
                     </div>
@@ -512,9 +503,9 @@ export default function ProductTemplate({
                         ✓
                       </span>
                       <div>
-                        <p className="font-semibold text-gray-900">Compra 100% Protegida</p>
+                        <p className="font-semibold text-gray-900">Atención personalizada</p>
                         <p className="text-[11px] text-gray-500">
-                          Atención personalizada por ingenieros especialistas
+                          Asesoría para elegir tu equipo
                         </p>
                       </div>
                     </div>
@@ -549,7 +540,7 @@ export default function ProductTemplate({
 
                 <div className="whitespace-pre-line break-words rounded-xl bg-[#FAFAFA] p-4 text-sm leading-7 text-gray-700 border border-gray-100">
                   {cleanDescription ||
-                    `Equipo ${displayTitle} nuevo y original. Distribuido por SUPPCOM con garantía local en Perú y facturación electrónica.`}
+                    `Consulta las características y especificaciones de ${displayTitle}.`}
                 </div>
               </article>
 
@@ -608,7 +599,7 @@ export default function ProductTemplate({
                     <div className="grid grid-cols-3 bg-white px-4 py-3">
                       <dt className="font-semibold text-gray-500">Condición</dt>
                       <dd className="col-span-2 font-semibold text-emerald-700">
-                        Nuevo en caja sellada
+                        Consultar condición y presentación
                       </dd>
                     </div>
                   </dl>
