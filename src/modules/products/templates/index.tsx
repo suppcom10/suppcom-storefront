@@ -242,6 +242,12 @@ export default function ProductTemplate({
   const photos = (images || []).filter(
     (item) => Boolean(item.url) && !item.url.includes("blanco.jpg")
   )
+  const processorName = specs.find((spec) => spec.icon === "CPU")?.value
+  const ramName = specs.find((spec) => spec.icon === "RAM")?.value
+  const gpuName = specs.find((spec) => spec.icon === "GPU")?.value
+  const isProfessionalWorkstation = Boolean(
+    gpuName && /RTX\s*PRO|QUADRO|RADEON\s*PRO/i.test(gpuName)
+  )
 
   return (
     <div className="w-full bg-[#FAFAFA] text-[#171717]">
@@ -276,19 +282,54 @@ export default function ProductTemplate({
         </nav>
 
         {/* Distribución Principal (3 Columnas estilo Newegg / B&H) */}
-        <div className="grid grid-cols-1 items-start gap-3 large:grid-cols-12 large:items-stretch large:gap-4">
+        <div className="grid grid-cols-1 items-start gap-3 large:grid-cols-12 large:gap-4">
           {/* COLUMNA 1: Fotografías (5 cols) */}
           <section
             aria-label="Galería de fotografías"
-            className="min-w-0 large:col-span-5 large:h-full"
+            className="min-w-0 large:col-span-5"
           >
-            <div className="flex h-full flex-col rounded-2xl border border-gray-200/80 bg-white p-2 shadow-sm small:p-3">
+            <div className="rounded-2xl border border-gray-200/80 bg-white p-2 shadow-sm small:p-3">
               <ProductGallery images={photos} title={displayTitle} />
+            </div>
+            {/* Tarjeta de Logística y Despacho (Reemplaza el bloque gris repetido de SKU) */}
+            <div className="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm">
+              <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-800">
+                Opciones de entrega y recojo
+              </h3>
+              <ul className="space-y-2.5 text-xs text-gray-600">
+                <li className="flex items-start gap-2.5">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                    🚚
+                  </span>
+                  <div>
+                    <strong className="text-gray-900">Despacho rápido en Lima Metropolitana:</strong>{" "}
+                    Consulta las opciones y plazos de entrega según tu distrito.
+                  </div>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                    📦
+                  </span>
+                  <div>
+                    <strong className="text-gray-900">Envíos a todo el Perú:</strong>{" "}
+                    Coordinamos el envío a provincias según el destino.
+                  </div>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+                    🏢
+                  </span>
+                  <div>
+                    <strong className="text-gray-900">Atención Corporativa (RUC 20):</strong>{" "}
+                    Emitimos Factura Electrónica con IGV desglosado y cotizaciones formales.
+                  </div>
+                </li>
+              </ul>
             </div>
           </section>
 
           {/* COLUMNA 2: Identidad del producto y especificaciones (4 cols) */}
-          <section className="flex min-w-0 flex-col gap-3 large:col-span-4 large:h-full">
+          <section className="flex min-w-0 flex-col gap-3 large:col-span-4">
             {/* Título integrado: elimina el encabezado a todo lo ancho */}
             <header className="rounded-2xl border border-gray-200/80 bg-white px-4 py-3.5 shadow-sm">
               <div className="flex flex-wrap items-center gap-1.5">
@@ -298,9 +339,6 @@ export default function ProductTemplate({
                     {product.subtitle}
                   </span>
                 )}
-                <span className="rounded-md bg-emerald-50 px-2 py-1 text-[10px] font-semibold text-emerald-700">
-                  Garantía oficial en Perú
-                </span>
               </div>
               <h1 className="mt-2 text-xl font-extrabold leading-tight tracking-tight text-gray-950 small:text-[24px]">
                 {displayTitle}
@@ -320,7 +358,7 @@ export default function ProductTemplate({
               )}
             </header>
             {/* Tarjeta de Especificaciones Clave */}
-            <div className="flex flex-1 flex-col rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm">
+            <div className="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm">
               <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-3">
                 <div className="flex items-center gap-2">
                   <span className="h-4 w-1 rounded-full bg-[#E6003D]" />
@@ -363,7 +401,7 @@ export default function ProductTemplate({
                 </div>
               )}
 
-              <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-3">
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-3">
                 <a
                   href="#especificaciones"
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-[#E6003D] transition-colors hover:text-red-700"
@@ -371,53 +409,15 @@ export default function ProductTemplate({
                   Ver ficha técnica completa
                   <span aria-hidden="true">↓</span>
                 </a>
-                <span className="text-[11px] text-gray-400">
-                  Garantía oficial en Perú
-                </span>
               </div>
             </div>
 
-            {/* Tarjeta de Logística y Despacho (Reemplaza el bloque gris repetido de SKU) */}
-            <div className="flex flex-1 flex-col rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm">
-              <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-800">
-                Opciones de entrega y recojo
-              </h3>
-              <ul className="space-y-2.5 text-xs text-gray-600">
-                <li className="flex items-start gap-2.5">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-                    🚚
-                  </span>
-                  <div>
-                    <strong className="text-gray-900">Despacho rápido en Lima Metropolitana:</strong>{" "}
-                    Consulta las opciones y plazos de entrega según tu distrito.
-                  </div>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-                    📦
-                  </span>
-                  <div>
-                    <strong className="text-gray-900">Envíos a todo el Perú:</strong>{" "}
-                    Coordinamos el envío a provincias según el destino.
-                  </div>
-                </li>
-                <li className="flex items-start gap-2.5">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600">
-                    🏢
-                  </span>
-                  <div>
-                    <strong className="text-gray-900">Atención Corporativa (RUC 20):</strong>{" "}
-                    Emitimos Factura Electrónica con IGV desglosado y cotizaciones formales.
-                  </div>
-                </li>
-              </ul>
-            </div>
           </section>
 
           {/* COLUMNA 3: Buy Box de Alta Conversión (3 cols) */}
-          <aside className="min-w-0 large:col-span-3 large:h-full">
-            <div className="large:sticky large:top-24 large:h-full">
-              <div className="flex h-full flex-col overflow-hidden rounded-2xl border-2 border-gray-900/10 bg-white shadow-md">
+          <aside className="min-w-0 large:col-span-3">
+            <div className="large:sticky large:top-24">
+              <div className="overflow-hidden rounded-2xl border-2 border-gray-900/10 bg-white shadow-md">
                 {/* Cabecera de Estado de Stock en Vivo */}
                 <div className="flex items-center justify-between border-b border-gray-100 bg-gradient-to-r from-[#FFF5F7] to-white px-4 py-3">
                   <div>
@@ -469,7 +469,7 @@ export default function ProductTemplate({
                 </div>
 
                 {/* Pie de Garantías */}
-                <div className="mt-auto border-t border-gray-100 bg-[#FAFAFA] px-4 py-4">
+                <div className="border-t border-gray-100 bg-[#FAFAFA] px-4 py-4">
                   <h3 className="mb-2.5 text-[11px] font-extrabold uppercase tracking-wider text-gray-800">
                     Respaldo SUPPCOM Perú
                   </h3>
@@ -533,18 +533,6 @@ export default function ProductTemplate({
             </div>
 
             <div className="grid grid-cols-1 gap-8 large:grid-cols-12">
-              {/* Descripción y Características */}
-              <article className="large:col-span-7">
-                <h3 className="mb-3 text-base font-bold text-gray-900">
-                  Descripción General
-                </h3>
-
-                <div className="whitespace-pre-line break-words rounded-xl bg-[#FAFAFA] p-4 text-sm leading-7 text-gray-700 border border-gray-100">
-                  {cleanDescription ||
-                    `Consulta las características y especificaciones de ${displayTitle}.`}
-                </div>
-              </article>
-
               {/* Tabla Zebra de Identificación y Ficha */}
               <div className="large:col-span-5">
                 <h3 className="mb-3 text-base font-bold text-gray-900">
@@ -606,6 +594,41 @@ export default function ProductTemplate({
                   </dl>
                 </div>
               </div>
+              {/* Descripción y Características */}
+              <article className="large:col-span-7">
+                <h3 className="mb-3 text-base font-bold text-gray-900">
+                  Descripción General
+                </h3>
+
+                <div className="space-y-5">
+                  <div className="rounded-xl border border-gray-100 bg-[#FAFAFA] p-4 text-sm leading-7 text-gray-700">
+                    {cleanDescription || `Conoce las características y especificaciones de ${displayTitle}.`}
+                  </div>
+
+                  <div className="rounded-xl border border-gray-100 bg-white p-4 small:p-5">
+                    <h4 className="mb-2 text-sm font-bold text-gray-900">
+                      ¿Para qué tipo de trabajo es recomendable?
+                    </h4>
+                    <p className="text-sm leading-7 text-gray-600">
+                      {isProfessionalWorkstation
+                        ? `Por su combinación de ${processorName || "procesador de alto rendimiento"}, ${ramName || "memoria RAM"} y ${gpuName || "gráficos dedicados"}, es una alternativa para profesionales que trabajan con proyectos de diseño, modelado 3D, planos CAD, edición de contenido y multitarea exigente. El desempeño depende del programa y la complejidad de cada proyecto.`
+                        : `Este equipo puede ser útil para tareas de productividad, trabajo remoto, estudios y uso de aplicaciones de oficina. Su idoneidad para software especializado depende de los requisitos de cada programa.`}
+                    </p>
+                    {isProfessionalWorkstation && (
+                      <ul className="mt-3 grid grid-cols-1 gap-2 text-xs text-gray-700 small:grid-cols-2">
+                        <li className="rounded-lg bg-gray-50 px-3 py-2">✓ Diseño técnico y planos CAD</li>
+                        <li className="rounded-lg bg-gray-50 px-3 py-2">✓ Modelado y visualización 3D</li>
+                        <li className="rounded-lg bg-gray-50 px-3 py-2">✓ Edición de contenido profesional</li>
+                        <li className="rounded-lg bg-gray-50 px-3 py-2">✓ Multitarea y proyectos complejos</li>
+                      </ul>
+                    )}
+                    <p className="mt-3 text-[11px] leading-5 text-gray-400">
+                      Recomendaciones orientativas según la configuración publicada; no constituyen certificación de compatibilidad con programas específicos.
+                    </p>
+                  </div>
+                </div>
+              </article>
+
             </div>
           </div>
         </section>
