@@ -94,7 +94,7 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
   return (
     <>
       <div
-        className="group relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-gray-100 bg-white"
+        className="group relative overflow-hidden rounded-xl border border-gray-100 bg-white"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
@@ -103,7 +103,7 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
           type="button"
           onClick={() => setZoomOpen(true)}
           aria-label="Ampliar fotografía del producto"
-          className="relative block aspect-[5/4] w-full cursor-zoom-in overflow-hidden large:aspect-auto large:min-h-[480px] large:flex-1"
+          className="relative block aspect-[5/4] w-full cursor-zoom-in overflow-hidden"
         >
           <Image
             key={active.id || active.url}
