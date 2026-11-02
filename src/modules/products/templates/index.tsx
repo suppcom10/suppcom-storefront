@@ -32,6 +32,17 @@ function findSpec(text: string, expressions: RegExp[]): string | null {
   return null
 }
 
+// Referencia publica estable basada en el ID de Medusa.
+// No reemplaza el SKU interno utilizado por los pedidos y la sincronizacion.
+function createSuppcomReference(id: string): string {
+  let hash = 2166136261
+  for (let i = 0; i < id.length; i++) {
+    hash ^= id.charCodeAt(i)
+    hash = Math.imul(hash, 16777619)
+  }
+  return `SC-${(hash >>> 0).toString(36).toUpperCase().padStart(7, "0")}`
+}
+
 function normalizeProcessor(raw: string): string {
   const clean = raw.trim().toUpperCase()
 
@@ -203,12 +214,7 @@ export default function ProductTemplate({
   const rawTitle = product.title || "Producto SUPPCOM"
   const baseName = rawTitle.includes("/") ? rawTitle.split("/")[0].trim() : rawTitle
 
-  // Limpia el separador [@@@] propio de Deltron si viene en la descripción
   const rawDescription = product.description?.trim() || ""
-  const cleanDescription = rawDescription
-    .replace(/\[@@@\]/g, "\n\n")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .trim()
 
   const shortHeadline = rawDescription.includes("[@@@]")
     ? rawDescription.split("[@@@]")[0].replace(/<[^>]+>/g, "").trim()
@@ -226,7 +232,12 @@ export default function ProductTemplate({
   const stockVerified =
     product.metadata?.stock_verified === true ||
     typeof product.metadata?.stock_verified_at === "string"
-  const sku = variant?.sku
+  const internalSupplierSku = variant?.sku
+  const savedPublicCode = product.metadata?.suppcom_sku
+  const publicCode =
+    typeof savedPublicCode === "string" && savedPublicCode.trim()
+      ? savedPublicCode.trim()
+      : createSuppcomReference(product.id)
   const partNumber =
     (product.metadata?.part_number as string | undefined) ||
     variant?.barcode ||
@@ -248,6 +259,18 @@ export default function ProductTemplate({
   const isProfessionalWorkstation = Boolean(
     gpuName && /RTX\s*PRO|QUADRO|RADEON\s*PRO/i.test(gpuName)
   )
+  const storageName = specs.find((spec) => spec.icon === "SSD")?.value
+  const screenName = specs.find((spec) => spec.icon === "LCD")?.value
+  const systemName = specs.find((spec) => spec.icon === "SO")?.value
+  const friendlyDescription = [
+    `${displayTitle} es un equipo pensado para ${isProfessionalWorkstation ? "flujos de trabajo profesionales y proyectos tecnicos" : "productividad, estudio y trabajo diario"}.`,
+    processorName ? `Incorpora procesador ${processorName}.` : "",
+    ramName ? `Cuenta con ${ramName} para ejecutar varias aplicaciones.` : "",
+    storageName ? `Su almacenamiento ${storageName} permite guardar archivos y proyectos.` : "",
+    gpuName ? `Integra graficos ${gpuName}.` : "",
+    screenName ? `Su pantalla ${screenName} ofrece espacio para trabajar.` : "",
+    systemName ? `Sistema operativo indicado: ${systemName}.` : "",
+  ].filter(Boolean).join(" ")
 
   return (
     <div className="w-full bg-[#FAFAFA] text-[#171717]">
@@ -292,9 +315,10 @@ export default function ProductTemplate({
               <ProductGallery images={photos} title={displayTitle} />
             </div>
             {/* Tarjeta de Logística y Despacho (Reemplaza el bloque gris repetido de SKU) */}
-            <div className="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm">
-              <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-gray-800">
-                Opciones de entrega y recojo
+            <div className="mt-3 rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
+              <h3 className="mb-3 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-emerald-800">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                Envíos y entregas
               </h3>
               <ul className="space-y-2.5 text-xs text-gray-600">
                 <li className="flex items-start gap-2.5">
@@ -348,14 +372,12 @@ export default function ProductTemplate({
                   {keySummary}
                 </p>
               )}
-              {(sku || partNumber) && (
-                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-500">
-                  {sku && <span>SKU: <strong className="font-mono text-gray-800">{sku}</strong></span>}
-                  {partNumber && partNumber !== sku && (
-                    <span>P/N: <strong className="font-mono text-gray-800">{partNumber}</strong></span>
-                  )}
-                </div>
-              )}
+              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-gray-500">
+                <span>Código SUPPCOM: <strong className="font-mono text-gray-800">{publicCode}</strong></span>
+                {partNumber && partNumber !== internalSupplierSku && (
+                  <span>P/N: <strong className="font-mono text-gray-800">{partNumber}</strong></span>
+                )}
+              </div>
             </header>
             {/* Tarjeta de Especificaciones Clave */}
             <div className="rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm">
@@ -395,9 +417,7 @@ export default function ProductTemplate({
                 </dl>
               ) : (
                 <div className="rounded-xl bg-gray-50 p-4 text-sm leading-relaxed text-gray-600">
-                  {cleanDescription
-                    ? cleanDescription.slice(0, 220) + (cleanDescription.length > 220 ? "..." : "")
-                    : "Consulta los detalles técnicos y las características en la parte inferior."}
+                  {friendlyDescription}
                 </div>
               )}
 
@@ -546,12 +566,10 @@ export default function ProductTemplate({
                       <dd className="col-span-2 font-bold text-gray-900">{baseName}</dd>
                     </div>
 
-                    {sku && (
-                      <div className="grid grid-cols-3 bg-white px-4 py-3">
-                        <dt className="font-semibold text-gray-500">SKU SUPPCOM</dt>
-                        <dd className="col-span-2 font-mono font-semibold text-gray-800">{sku}</dd>
-                      </div>
-                    )}
+                    <div className="grid grid-cols-3 bg-white px-4 py-3">
+                      <dt className="font-semibold text-gray-500">Código SUPPCOM</dt>
+                      <dd className="col-span-2 font-mono font-semibold text-gray-800">{publicCode}</dd>
+                    </div>
 
                     {partNumber && (
                       <div className="grid grid-cols-3 bg-gray-50 px-4 py-3">
@@ -585,12 +603,7 @@ export default function ProductTemplate({
                       </div>
                     ))}
 
-                    <div className="grid grid-cols-3 bg-white px-4 py-3">
-                      <dt className="font-semibold text-gray-500">Condición</dt>
-                      <dd className="col-span-2 font-semibold text-emerald-700">
-                        Consultar condición y presentación
-                      </dd>
-                    </div>
+
                   </dl>
                 </div>
               </div>
@@ -602,7 +615,7 @@ export default function ProductTemplate({
 
                 <div className="space-y-5">
                   <div className="rounded-xl border border-gray-100 bg-[#FAFAFA] p-4 text-sm leading-7 text-gray-700">
-                    {cleanDescription || `Conoce las características y especificaciones de ${displayTitle}.`}
+                    {friendlyDescription}
                   </div>
 
                   <div className="rounded-xl border border-gray-100 bg-white p-4 small:p-5">
