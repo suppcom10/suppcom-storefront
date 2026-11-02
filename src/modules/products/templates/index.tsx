@@ -512,9 +512,9 @@ export default function ProductTemplate({
                         ✓
                       </span>
                       <div>
-                        <p className="font-semibold text-gray-900">Boleta o Factura Electrónica</p>
+                        <p className="font-semibold text-gray-900">Compra 100% protegida</p>
                         <p className="text-[11px] text-gray-500">
-                          Comprobante SUNAT válido para crédito fiscal (RUC 20)
+                          Priorizamos equipos de calidad, información clara y atención durante tu compra.
                         </p>
                       </div>
                     </div>
@@ -555,7 +555,8 @@ export default function ProductTemplate({
             <div className="grid grid-cols-1 gap-8 large:grid-cols-12">
               {/* Tabla Zebra de Identificación y Ficha */}
               <div className="large:col-span-5">
-                <h3 className="mb-3 text-base font-bold text-gray-900">
+                <h3 className="mb-3 flex items-center gap-2 text-base font-bold text-gray-900">
+                  <span className="h-4 w-1 rounded-full bg-[#E6003D]" />
                   Ficha de Identificación
                 </h3>
 
@@ -609,17 +610,19 @@ export default function ProductTemplate({
               </div>
               {/* Descripción y Características */}
               <article className="large:col-span-7">
-                <h3 className="mb-3 text-base font-bold text-gray-900">
+                <h3 className="mb-3 flex items-center gap-2 text-base font-bold text-gray-900">
+                  <span className="h-4 w-1 rounded-full bg-[#E6003D]" />
                   Descripción General
                 </h3>
 
                 <div className="space-y-5">
-                  <div className="rounded-xl border border-gray-100 bg-[#FAFAFA] p-4 text-sm leading-7 text-gray-700">
+                  <div className="rounded-xl border border-[#FCE5EA] bg-[#FFF9FA] p-4 text-sm leading-7 text-gray-700">
                     {friendlyDescription}
                   </div>
 
-                  <div className="rounded-xl border border-gray-100 bg-white p-4 small:p-5">
-                    <h4 className="mb-2 text-sm font-bold text-gray-900">
+                  <div className="rounded-xl border border-gray-200 bg-white p-4 small:p-5">
+                    <h4 className="mb-2 flex items-center gap-2 text-sm font-bold text-gray-900">
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-lg bg-[#FFF0F3] text-[#E6003D]">✓</span>
                       ¿Para qué tipo de trabajo es recomendable?
                     </h4>
                     <p className="text-sm leading-7 text-gray-600">
