@@ -206,7 +206,7 @@ export default function ProductTemplate({
   // Limpia el separador [@@@] propio de Deltron si viene en la descripción
   const rawDescription = product.description?.trim() || ""
   const cleanDescription = rawDescription
-    .replace(/[@@@]/g, "\n\n")
+    .replace(/\[@@@\]/g, "\n\n")
     .replace(/<br\s*\/?>/gi, "\n")
     .trim()
 
@@ -425,4 +425,217 @@ export default function ProductTemplate({
           {/* COLUMNA 3: Buy Box de Alta Conversión (3 cols) */}
           <aside className="min-w-0 large:col-span-3">
             <div className="large:sticky large:top-24">
-              <div className="overflow-hidden rounded
+              <div className="overflow-hidden rounded-2xl border-2 border-gray-900/10 bg-white shadow-md">
+                {/* Cabecera de Estado de Stock en Vivo */}
+                <div className="flex items-center justify-between border-b border-gray-100 bg-gradient-to-r from-[#FFF5F7] to-white px-4 py-3">
+                  <div>
+                    <p className="text-[11px] font-extrabold uppercase tracking-wider text-[#E6003D]">
+                      Precio Online SUPPCOM
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-gray-500">
+                      Incluye IGV (18%) · Stock verificado
+                    </p>
+                  </div>
+
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100/80 px-2.5 py-1 text-[11px] font-bold text-emerald-800">
+                    <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+                    Disponible
+                  </span>
+                </div>
+
+                {/* Cuerpo de Acciones de Medusa (Precio + Botones) */}
+                <div className="p-4 small:p-5">
+                  <Suspense
+                    fallback={
+                      <ProductActions
+                        disabled
+                        product={product}
+                        region={region}
+                      />
+                    }
+                  >
+                    <ProductActionsWrapper id={product.id} region={region} />
+                  </Suspense>
+
+                  {/* Nota de Medios de Pago Locales */}
+                  <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50/80 p-3">
+                    <p className="text-[11px] font-semibold text-gray-700">
+                      Medios de pago aceptados:
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      <span className="rounded border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-bold text-gray-700">
+                        Transferencia BCP / Interbank
+                      </span>
+                      <span className="rounded border border-purple-200 bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-800">
+                        Yape / Plin
+                      </span>
+                      <span className="rounded border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-800">
+                        Tarjetas Visa / Mastercard
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pie de Garantías */}
+                <div className="border-t border-gray-100 bg-[#FAFAFA] px-4 py-4">
+                  <h3 className="mb-2.5 text-[11px] font-extrabold uppercase tracking-wider text-gray-800">
+                    Respaldo SUPPCOM Perú
+                  </h3>
+
+                  <div className="space-y-2.5 text-xs">
+                    <div className="flex items-start gap-2.5">
+                      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#FFF0F3] text-[10px] font-bold text-[#E6003D]">
+                        ✓
+                      </span>
+                      <div>
+                        <p className="font-semibold text-gray-900">Garantía Oficial Local</p>
+                        <p className="text-[11px] text-gray-500">
+                          Respaldo directo de marca y soporte técnico en Lima
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#FFF0F3] text-[10px] font-bold text-[#E6003D]">
+                        ✓
+                      </span>
+                      <div>
+                        <p className="font-semibold text-gray-900">Boleta o Factura Electrónica</p>
+                        <p className="text-[11px] text-gray-500">
+                          Comprobante SUNAT válido para crédito fiscal (RUC 20)
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2.5">
+                      <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-[#FFF0F3] text-[10px] font-bold text-[#E6003D]">
+                        ✓
+                      </span>
+                      <div>
+                        <p className="font-semibold text-gray-900">Compra 100% Protegida</p>
+                        <p className="text-[11px] text-gray-500">
+                          Atención personalizada por ingenieros especialistas
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        {/* SECCIÓN INFERIOR: Ficha Técnica Completa y Tabla Zebra */}
+        <section
+          id="especificaciones"
+          className="mt-12 scroll-mt-24"
+        >
+          <div className="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm small:p-8">
+            <div className="mb-6 border-b border-gray-100 pb-4">
+              <p className="text-xs font-bold uppercase tracking-wider text-[#E6003D]">
+                Información Técnica Detallada
+              </p>
+              <h2 className="mt-1 text-xl font-extrabold text-gray-900 small:text-2xl">
+                Especificaciones y Descripción del Producto
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8 large:grid-cols-12">
+              {/* Descripción y Características */}
+              <article className="large:col-span-7">
+                <h3 className="mb-3 text-base font-bold text-gray-900">
+                  Descripción General
+                </h3>
+
+                <div className="whitespace-pre-line break-words rounded-xl bg-[#FAFAFA] p-4 text-sm leading-7 text-gray-700 border border-gray-100">
+                  {cleanDescription ||
+                    `Equipo ${displayTitle} nuevo y original. Distribuido por SUPPCOM con garantía local en Perú y facturación electrónica.`}
+                </div>
+              </article>
+
+              {/* Tabla Zebra de Identificación y Ficha */}
+              <div className="large:col-span-5">
+                <h3 className="mb-3 text-base font-bold text-gray-900">
+                  Ficha de Identificación
+                </h3>
+
+                <div className="overflow-hidden rounded-xl border border-gray-200">
+                  <dl className="divide-y divide-gray-200 text-xs small:text-sm">
+                    <div className="grid grid-cols-3 bg-gray-50 px-4 py-3">
+                      <dt className="font-semibold text-gray-500">Producto</dt>
+                      <dd className="col-span-2 font-bold text-gray-900">{baseName}</dd>
+                    </div>
+
+                    {sku && (
+                      <div className="grid grid-cols-3 bg-white px-4 py-3">
+                        <dt className="font-semibold text-gray-500">SKU SUPPCOM</dt>
+                        <dd className="col-span-2 font-mono font-semibold text-gray-800">{sku}</dd>
+                      </div>
+                    )}
+
+                    {partNumber && (
+                      <div className="grid grid-cols-3 bg-gray-50 px-4 py-3">
+                        <dt className="font-semibold text-gray-500">Part Number</dt>
+                        <dd className="col-span-2 font-mono font-semibold text-gray-800">
+                          {partNumber}
+                        </dd>
+                      </div>
+                    )}
+
+                    {product.subtitle && (
+                      <div className="grid grid-cols-3 bg-white px-4 py-3">
+                        <dt className="font-semibold text-gray-500">Marca / Línea</dt>
+                        <dd className="col-span-2 font-medium text-gray-800">
+                          {product.subtitle}
+                        </dd>
+                      </div>
+                    )}
+
+                    {specs.map((spec, idx) => (
+                      <div
+                        key={spec.label}
+                        className={`grid grid-cols-3 px-4 py-3 ${
+                          idx % 2 === 0 ? "bg-gray-50" : "bg-white"
+                        }`}
+                      >
+                        <dt className="font-semibold text-gray-500">{spec.label}</dt>
+                        <dd className="col-span-2 font-semibold text-gray-900">
+                          {spec.value}
+                        </dd>
+                      </div>
+                    ))}
+
+                    <div className="grid grid-cols-3 bg-white px-4 py-3">
+                      <dt className="font-semibold text-gray-500">Condición</dt>
+                      <dd className="col-span-2 font-semibold text-emerald-700">
+                        Nuevo en caja sellada
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* Productos Relacionados */}
+      <section className="mx-auto my-10 w-full max-w-[1440px] px-4 small:px-6 large:px-8">
+        <div className="mb-6 flex items-center justify-between border-b border-gray-200 pb-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-[#E6003D]">
+              Alternativas Recomendadas
+            </p>
+            <h2 className="mt-1 text-xl font-extrabold text-gray-900 small:text-2xl">
+              También te puede interesar
+            </h2>
+          </div>
+        </div>
+
+        <Suspense fallback={<SkeletonRelatedProducts />}>
+          <RelatedProducts product={product} countryCode={countryCode} />
+        </Suspense>
+      </section>
+    </div>
+  )
+}
