@@ -217,11 +217,6 @@ export default function ProductTemplate({
     variant?.barcode ||
     null
 
-  const keySummary = specs
-    .slice(0, 4)
-    .map((s) => s.value)
-    .join(" · ")
-
   const displayTitle = shortHeadline || baseName
   const photos = (images || []).filter(
     (item) => Boolean(item.url) && !item.url.includes("blanco.jpg")
@@ -259,7 +254,7 @@ export default function ProductTemplate({
           </span>
         </nav>
 
-        {/* Encabezado con SKU y P/N integrados arriba (Limpiando la derecha) */}
+        {/* Encabezado limpio con SKU y P/N integrados a la derecha */}
         <header className="mb-6 rounded-2xl border border-gray-200/80 bg-white p-4 shadow-sm small:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
@@ -273,7 +268,7 @@ export default function ProductTemplate({
               </span>
             </div>
 
-            {/* SKU y Part Number visibles de inmediato al lado del título/badges */}
+            {/* SKU y Part Number visibles en la parte superior derecha */}
             <div className="flex flex-wrap items-center gap-2">
               {sku && (
                 <span className="rounded-md bg-gray-100 px-3 py-1 font-mono text-xs font-semibold text-gray-800">
@@ -291,12 +286,6 @@ export default function ProductTemplate({
           <h1 className="mt-3 text-xl font-extrabold leading-snug tracking-tight text-gray-900 small:text-2xl large:text-[26px]">
             {displayTitle}
           </h1>
-
-          {keySummary && (
-            <p className="mt-1.5 text-xs font-medium text-gray-600 small:text-sm">
-              {keySummary}
-            </p>
-          )}
         </header>
 
         {/* Distribución Principal (3 Columnas perfectamente balanceadas) */}
