@@ -1,4 +1,3 @@
-
 "use server"
 
 import { sdk } from "@lib/config"
@@ -73,7 +72,9 @@ export const listProducts = async ({
     },
     headers,
     next: {
-      revalidate: PRODUCT_REVALIDATE_SECONDS,
+      // Las fichas consultadas por handle deben reflejar enseguida los cambios de Media.
+      // Conservamos la caché de seis horas para las búsquedas del catálogo general.
+      revalidate: queryParams?.handle ? 0 : PRODUCT_REVALIDATE_SECONDS,
     },
   })
 
