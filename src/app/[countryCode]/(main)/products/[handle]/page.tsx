@@ -1,4 +1,3 @@
-
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { listProducts } from "@lib/data/products"
@@ -16,8 +15,6 @@ type Props = {
   }>
 }
 
-// Las fichas se generan bajo demanda.
-// No consultamos el catálogo durante el build.
 export const dynamic = "force-dynamic"
 
 function getImagesForVariant(
@@ -26,8 +23,18 @@ function getImagesForVariant(
 ) {
   const productImages = product.images ?? []
 
-  if (!selectedVariantId) {
-    return productImages
+  // En el piloto SUPPCOM cada producto tiene una sola variante.
+  // Mostrar todas las imágenes de Media evita ocultar fotos recién agregadas.
+  // Priorizar la miniatura elegida en Medusa para la fotografía principal.
+  const orderedImages = [...productImages]
+  if (product.thumbnail) {
+    orderedImages.sort((a, b) =>
+      Number(b.url === product.thumbnail) - Number(a.url === product.thumbnail)
+    )
+  }
+
+  if (!selectedVariantId || (product.variants?.length ?? 0) <= 1) {
+    return orderedImages
   }
 
   const variant = product.variants?.find(
@@ -35,20 +42,20 @@ function getImagesForVariant(
   )
 
   if (!variant?.images?.length) {
-    return productImages
+    return orderedImages
   }
 
   const variantImageIds = new Set(
     variant.images.map((image) => image.id)
   )
 
-  const selectedImages = productImages.filter(
+  const selectedImages = orderedImages.filter(
     (image) => variantImageIds.has(image.id)
   )
 
   return selectedImages.length
     ? selectedImages
-    : productImages
+    : orderedImages
 }
 
 async function getProduct(
@@ -117,7 +124,6 @@ export default async function ProductPage(
     handle
   )
 
-  // Importante: validar ANTES de usar el producto.
   if (!product) {
     notFound()
   }
