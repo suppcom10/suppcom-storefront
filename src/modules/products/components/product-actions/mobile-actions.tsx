@@ -1,3 +1,5 @@
+"use client"
+
 import { Dialog, Transition } from "@headlessui/react"
 import { Button, clx } from "@medusajs/ui"
 import React, { Fragment, useMemo } from "react"
@@ -5,7 +7,6 @@ import React, { Fragment, useMemo } from "react"
 import useToggleState from "@lib/hooks/use-toggle-state"
 import ChevronDown from "@modules/common/icons/chevron-down"
 import X from "@modules/common/icons/x"
-
 import { getProductPrice } from "@lib/util/get-product-price"
 import OptionSelect from "./option-select"
 import { HttpTypes } from "@medusajs/types"
@@ -35,104 +36,112 @@ const MobileActions: React.FC<MobileActionsProps> = ({
   optionsDisabled,
 }) => {
   const { state, open, close } = useToggleState()
-
-  const price = getProductPrice({
-    product: product,
-    variantId: variant?.id,
-  })
-
+  const price = getProductPrice({ product, variantId: variant?.id })
   const selectedPrice = useMemo(() => {
-    if (!price) {
-      return null
-    }
-    const { variantPrice, cheapestPrice } = price
-
-    return variantPrice || cheapestPrice || null
+    if (!price) return null
+    return price.variantPrice || price.cheapestPrice || null
   }, [price])
 
   const isSimple = isSimpleProduct(product)
+  const metadataTitle = product.metadata?.suppcom_title
+  // Conservar el título original del proveedor en Medusa para la sincronización.
+  // Mostrar al cliente solo el modelo comercial, sin códigos separados por '/'.
+  const commercialTitle =
+    (typeof metadataTitle === "string" && metadataTitle.trim()) ||
+    (product.title || "Producto SUPPCOM").split("/")[0].trim()
 
   return (
     <>
+      {/* Ocultar únicamente el WhatsApp flotante global cuando aparece esta barra.
+          El enlace WhatsApp de la ficha permanece disponible. */}
+      <style>{`
+        @media (max-width: 1023px) {
+          body:has([data-suppcom-mobile-bar="true"]) a[aria-label="Contacto por WhatsApp"] {
+            display: none !important;
+          }
+        }
+      `}</style>
+
       <div
-        className={clx("lg:hidden inset-x-0 bottom-0 fixed z-50", {
+        data-suppcom-mobile-bar={show ? "true" : "false"}
+        className={clx("lg:hidden fixed inset-x-0 bottom-0 z-50", {
           "pointer-events-none": !show,
         })}
       >
         <Transition
           as={Fragment}
           show={show}
-          enter="ease-in-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-300"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
+          enter="ease-in-out duration-200"
+          enterFrom="opacity-0 translate-y-3"
+          enterTo="opacity-100 translate-y-0"
+          leave="ease-in duration-150"
+          leaveFrom="opacity-100 translate-y-0"
+          leaveTo="opacity-0 translate-y-3"
         >
           <div
-            className="bg-white flex flex-col gap-y-3 justify-center items-center text-large-regular p-4 h-full w-full border-t border-gray-200"
+            className="w-full border-t border-gray-200 bg-white px-4 py-3 shadow-[0_-6px_25px_rgba(0,0,0,0.08)]"
+            style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
             data-testid="mobile-actions"
           >
-            <div className="flex items-center gap-x-2">
-              <span data-testid="mobile-title">{product.title}</span>
-              <span>—</span>
-              {selectedPrice ? (
-                <div className="flex items-end gap-x-2 text-ui-fg-base">
-                  {selectedPrice.price_type === "sale" && (
-                    <p>
-                      <span className="line-through text-small-regular">
+            <div className="mx-auto flex max-w-xl items-center justify-between gap-3 pb-2">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-bold text-gray-900" data-testid="mobile-title" title={commercialTitle}>
+                  {commercialTitle}
+                </p>
+                {product.subtitle && (
+                  <p className="truncate text-[10px] text-gray-500">{product.subtitle}</p>
+                )}
+              </div>
+              <div className="shrink-0 text-right">
+                {selectedPrice ? (
+                  <>
+                    {selectedPrice.price_type === "sale" && (
+                      <p className="text-[10px] text-gray-400 line-through">
                         {selectedPrice.original_price}
-                      </span>
+                      </p>
+                    )}
+                    <p className="text-sm font-extrabold text-[#171717] tabular-nums">
+                      {selectedPrice.calculated_price}
                     </p>
-                  )}
-                  <span
-                    className={clx({
-                      "text-ui-fg-interactive":
-                        selectedPrice.price_type === "sale",
-                    })}
-                  >
-                    {selectedPrice.calculated_price}
-                  </span>
-                </div>
-              ) : (
-                <div></div>
-              )}
+                  </>
+                ) : (
+                  <p className="text-xs text-gray-500">Consultar precio</p>
+                )}
+              </div>
             </div>
-            <div className={clx("grid grid-cols-2 w-full gap-x-4", {
-              "!grid-cols-1": isSimple
-            })}>
-              {!isSimple && <Button
-                onClick={open}
-                variant="secondary"
-                className="w-full"
-                data-testid="mobile-actions-button"
-              >
-                <div className="flex items-center justify-between w-full">
-                  <span>
-                    {variant
-                      ? Object.values(options).join(" / ")
-                      : "Select Options"}
+
+            <div className={clx("grid w-full gap-2", isSimple ? "grid-cols-1" : "grid-cols-2")}>
+              {!isSimple && (
+                <Button
+                  onClick={open}
+                  variant="secondary"
+                  className="w-full min-w-0 h-10 text-xs"
+                  data-testid="mobile-actions-button"
+                >
+                  <span className="flex w-full min-w-0 items-center justify-between gap-1">
+                    <span className="truncate">
+                      {variant
+                        ? Object.values(options).filter(Boolean).join(" / ") || "Opciones"
+                        : "Elegir opción"}
+                    </span>
+                    <ChevronDown />
                   </span>
-                  <ChevronDown />
-                </div>
-              </Button>}
+                </Button>
+              )}
               <Button
                 onClick={handleAddToCart}
-                disabled={!inStock || !variant}
-                className="w-full"
+                disabled={!inStock || !variant || optionsDisabled}
+                className="h-10 w-full bg-[#242424] text-white hover:bg-[#111111]"
                 isLoading={isAdding}
                 data-testid="mobile-cart-button"
               >
-                {!variant
-                  ? "Select variant"
-                  : !inStock
-                  ? "Out of stock"
-                  : "Add to cart"}
+                {!variant ? "Elegir variante" : !inStock ? "Agotado" : "Añadir al carrito"}
               </Button>
             </div>
           </div>
         </Transition>
       </div>
+
       <Transition appear show={state} as={Fragment}>
         <Dialog as="div" className="relative z-[75]" onClose={close}>
           <Transition.Child
@@ -144,49 +153,48 @@ const MobileActions: React.FC<MobileActionsProps> = ({
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-gray-700 bg-opacity-75 backdrop-blur-sm" />
+            <div className="fixed inset-0 bg-gray-700/75 backdrop-blur-sm" />
           </Transition.Child>
 
-          <div className="fixed bottom-0 inset-x-0">
+          <div className="fixed inset-x-0 bottom-0">
             <div className="flex min-h-full h-full items-center justify-center text-center">
               <Transition.Child
                 as={Fragment}
                 enter="ease-out duration-300"
-                enterFrom="opacity-0"
-                enterTo="opacity-100"
+                enterFrom="opacity-0 translate-y-4"
+                enterTo="opacity-100 translate-y-0"
                 leave="ease-in duration-200"
-                leaveFrom="opacity-100"
-                leaveTo="opacity-0"
+                leaveFrom="opacity-100 translate-y-0"
+                leaveTo="opacity-0 translate-y-4"
               >
                 <Dialog.Panel
-                  className="w-full h-full transform overflow-hidden text-left flex flex-col gap-y-3"
+                  className="flex h-full w-full transform flex-col gap-y-3 overflow-hidden text-left"
                   data-testid="mobile-actions-modal"
                 >
-                  <div className="w-full flex justify-end pr-6">
+                  <div className="flex w-full justify-end pr-6">
                     <button
                       onClick={close}
-                      className="bg-white w-12 h-12 rounded-full text-ui-fg-base flex justify-center items-center"
+                      aria-label="Cerrar selección de opciones"
+                      className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-gray-900"
                       data-testid="close-modal-button"
                     >
                       <X />
                     </button>
                   </div>
-                  <div className="bg-white px-6 py-12">
+                  <div className="bg-white px-6 py-10">
                     {(product.variants?.length ?? 0) > 1 && (
                       <div className="flex flex-col gap-y-6">
-                        {(product.options || []).map((option) => {
-                          return (
-                            <div key={option.id}>
-                              <OptionSelect
-                                option={option}
-                                current={options[option.id]}
-                                updateOption={updateOptions}
-                                title={option.title ?? ""}
-                                disabled={optionsDisabled}
-                              />
-                            </div>
-                          )
-                        })}
+                        {(product.options || []).map((option) => (
+                          <div key={option.id}>
+                            <OptionSelect
+                              option={option}
+                              current={options[option.id]}
+                              updateOption={updateOptions}
+                              title={option.title ?? ""}
+                              disabled={optionsDisabled}
+                            />
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
