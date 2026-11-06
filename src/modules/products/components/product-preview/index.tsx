@@ -11,46 +11,23 @@ function cleanCommercialTitle(product: HttpTypes.StoreProduct): string {
   return raw.split("/")[0].trim() || raw
 }
 
-function providerModelLine(
-  product: HttpTypes.StoreProduct,
-  commercialTitle: string
-): string {
-  const raw = (product.title || "").trim()
-  if (!raw) return ""
-
-  const customModel = product.metadata?.suppcom_model
-  if (typeof customModel === "string" && customModel.trim()) {
-    return customModel.trim()
-  }
-
-  if (raw.toLowerCase() === commercialTitle.toLowerCase()) return ""
-
-  const cleaned = raw
-    .replace(/^NB\s+WS\s+/i, "")
-    .replace(/\s+/g, " ")
-    .trim()
-
-  return cleaned
-}
-
 function technicalSummary(product: HttpTypes.StoreProduct): string {
   const custom = product.metadata?.suppcom_short_specs
   if (typeof custom === "string" && custom.trim()) return custom.trim()
 
-  const text = [product.title, product.description].filter(Boolean).join(" ")
+  const text = [product.title, product.description]
+    .filter(Boolean)
+    .join(" ")
 
-  const cpu =
-    text.match(/(?:Intel\s+Core\s+)?Ultra\s+[3579]\s+\d{3}[A-Z0-9]*/i)?.[0] ??
-    text.match(/(?:AMD\s+)?Ryzen\s+(?:AI\s+)?[3579]\s+\d{4,5}[A-Z0-9]*/i)?.[0] ??
-    text.match(/(?:Intel\s+)?Core\s+i[3579][\s-]?\d{4,5}[A-Z0-9]*/i)?.[0]
+  const cpu = text.match(/(?:Intel\s+Core\s+)?Ultra\s+[3579]\s+\d{3}[A-Z0-9]*/i)?.[0]
+    ?? text.match(/(?:AMD\s+)?Ryzen\s+(?:AI\s+)?[3579]\s+\d{4,5}[A-Z0-9]*/i)?.[0]
+    ?? text.match(/(?:Intel\s+)?Core\s+i[3579][\s-]?\d{4,5}[A-Z0-9]*/i)?.[0]
 
   const ram = text.match(/\b\d{1,3}\s*GB\s*(?:LPDDR\w*|DDR[345])\b/i)?.[0]
   const disk = text.match(/\b\d+(?:\.\d+)?\s*(?:TB|GB)\s*(?:SSD|NVMe)\b/i)?.[0]
 
   const normalizedCpu = cpu
-    ? /^Ultra\b/i.test(cpu)
-      ? `Intel Core ${cpu}`
-      : cpu
+    ? /^Ultra\b/i.test(cpu) ? `Intel Core ${cpu}` : cpu
     : null
 
   return [normalizedCpu, ram, disk].filter(Boolean).slice(0, 3).join(" · ")
@@ -63,10 +40,7 @@ function isExplicitlySoldOut(product: HttpTypes.StoreProduct): boolean {
   return variants.every((variant) => {
     if (variant.manage_inventory === false) return false
     if (variant.allow_backorder) return false
-    return (
-      typeof variant.inventory_quantity === "number" &&
-      variant.inventory_quantity <= 0
-    )
+    return typeof variant.inventory_quantity === "number" && variant.inventory_quantity <= 0
   })
 }
 
@@ -80,7 +54,6 @@ export default async function ProductPreview({
   region: HttpTypes.StoreRegion
 }) {
   const name = cleanCommercialTitle(product)
-  const modelLine = providerModelLine(product, name)
   const summary = technicalSummary(product)
   const soldOut = isExplicitlySoldOut(product)
 
@@ -94,17 +67,15 @@ export default async function ProductPreview({
         className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-lg"
       >
         <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-white">
-          <span className="absolute left-2 top-2 z-10 inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">
+          <span className="absolute left-2.5 top-2.5 z-10 flex items-center gap-1 rounded-md border border-neutral-200/60 bg-white/95 px-2 py-0.5 text-[10px] font-bold tracking-tight text-neutral-700 shadow-sm backdrop-blur-sm">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            Garantía oficial
+            Garantía Oficial
           </span>
-
           {isFeatured && (
             <span className="absolute right-2 top-2 z-10 rounded-md bg-[#E6003D] px-2 py-1 text-[10px] font-bold text-white">
               Destacado
             </span>
           )}
-
           <Thumbnail
             thumbnail={product.thumbnail}
             images={product.images}
@@ -121,11 +92,6 @@ export default async function ProductPreview({
             {name}
           </h3>
 
-          {modelLine && (
-            <p className="mt-0.5 line-clamp-1 text-[11px] font-medium leading-4 text-neutral-500">
-              {modelLine}
-            </p>
-          )}
 
           {summary && (
             <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-neutral-600">
@@ -151,23 +117,12 @@ export default async function ProductPreview({
             <div className="min-w-0 text-sm font-extrabold text-neutral-950 sm:text-base">
               <PreviewPrice price={product.price} />
             </div>
-
             <span
               aria-hidden="true"
               className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-50 text-neutral-600 transition-colors group-hover:bg-[#E6003D] group-hover:text-white"
             >
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M14 5l7 7m0 0l-7 7m7-7H3"
-                />
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </span>
           </div>
