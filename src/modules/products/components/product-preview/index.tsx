@@ -1,8 +1,53 @@
-import { Text } from "@medusajs/ui"
 import { HttpTypes } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import Thumbnail from "../thumbnail"
 import PreviewPrice from "./price"
+
+function cleanCommercialTitle(product: HttpTypes.StoreProduct): string {
+  const custom = product.metadata?.suppcom_title
+  if (typeof custom === "string" && custom.trim()) return custom.trim()
+
+  const raw = (product.title || "Producto SUPPCOM").trim()
+  // Los nombres del proveedor suelen contener códigos después de la primera barra.
+  // No alteramos el título original almacenado en Medusa.
+  return raw.split("/")[0].trim() || raw
+}
+
+function technicalSummary(product: HttpTypes.StoreProduct): string {
+  const custom = product.metadata?.suppcom_short_specs
+  if (typeof custom === "string" && custom.trim()) return custom.trim()
+
+  const text = [product.title, product.description]
+    .filter(Boolean)
+    .join(" ")
+
+  const cpu = text.match(/(?:Intel\s+Core\s+)?Ultra\s+[3579]\s+\d{3}[A-Z0-9]*/i)?.[0]
+    ?? text.match(/(?:AMD\s+)?Ryzen\s+(?:AI\s+)?[3579]\s+\d{4,5}[A-Z0-9]*/i)?.[0]
+    ?? text.match(/(?:Intel\s+)?Core\s+i[3579][\s-]?\d{4,5}[A-Z0-9]*/i)?.[0]
+
+  const ram = text.match(/\b\d{1,3}\s*GB\s*(?:LPDDR\w*|DDR[345])\b/i)?.[0]
+  const disk = text.match(/\b\d+(?:\.\d+)?\s*(?:TB|GB)\s*(?:SSD|NVMe)\b/i)?.[0]
+
+  const normalizedCpu = cpu
+    ? /^Ultra\b/i.test(cpu) ? `Intel Core ${cpu}` : cpu
+    : null
+
+  return [normalizedCpu, ram, disk].filter(Boolean).slice(0, 3).join(" · ")
+}
+
+type Availability = "available" | "order" | "unknown"
+
+function getAvailability(product: HttpTypes.StoreProduct): Availability {
+  const variants = product.variants ?? []
+  if (variants.some((variant) =>
+    variant.manage_inventory !== false &&
+    typeof variant.inventory_quantity === "number" &&
+    variant.inventory_quantity > 0
+  )) return "available"
+
+  if (variants.some((variant) => variant.allow_backorder)) return "order"
+  return "unknown"
+}
 
 export default async function ProductPreview({
   product,
@@ -13,81 +58,81 @@ export default async function ProductPreview({
   isFeatured?: boolean
   region: HttpTypes.StoreRegion
 }) {
+  const name = cleanCommercialTitle(product)
+  const summary = technicalSummary(product)
+  const availability = getAvailability(product)
+
   return (
     <LocalizedClientLink
       href={`/products/${product.handle}`}
       className="group block h-full"
     >
-      <div
+      <article
         data-testid="product-wrapper"
-        className="relative flex flex-col justify-between h-full bg-white rounded-2xl border border-neutral-200/80 p-3.5 transition-all duration-200 ease-out hover:-translate-y-1 hover:shadow-lg hover:border-neutral-300"
+        className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-neutral-300 hover:shadow-lg"
       >
-        {/* Contenedor de Imagen y Badges Técnicos */}
-        <div className="relative w-full aspect-square bg-neutral-50 rounded-xl overflow-hidden flex items-center justify-center">
-          {/* Badge superior izquierdo: Garantía Oficial */}
-          <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 bg-white/95 backdrop-blur-sm px-2 py-0.5 rounded-md shadow-xs border border-neutral-200/60">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[10px] font-bold text-neutral-700 tracking-tight">
-              Garantía Oficial
-            </span>
-          </div>
-
-          {/* Badge superior derecho si está en oferta o destacado */}
+        <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-xl bg-white">
+          <span className="absolute left-2 top-2 z-10 rounded-md border border-neutral-200/70 bg-white/95 px-2 py-1 text-[10px] font-bold text-neutral-700">
+            SUPPCOM Perú
+          </span>
           {isFeatured && (
-            <div className="absolute top-2.5 right-2.5 z-10 bg-[#E31837] text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md shadow-xs uppercase tracking-wider">
-              Top Ventas
-            </div>
+            <span className="absolute right-2 top-2 z-10 rounded-md bg-[#E6003D] px-2 py-1 text-[10px] font-bold text-white">
+              Destacado
+            </span>
           )}
-
           <Thumbnail
             thumbnail={product.thumbnail}
             images={product.images}
             size="full"
-            isFeatured={isFeatured}
-            className="group-hover:scale-105 transition-transform duration-300 object-contain p-2"
+            className="transition-transform duration-300 group-hover:scale-[1.025]"
           />
         </div>
 
-        {/* Información Técnica y Precios */}
-        <div className="flex flex-col justify-between flex-1 mt-3.5 gap-y-2">
-          <div>
-            <Text
-              className="text-xs sm:text-sm font-semibold text-neutral-900 group-hover:text-[#E31837] transition-colors line-clamp-2 leading-snug"
-              data-testid="product-title"
-            >
-              {product.title}
-            </Text>
+        <div className="mt-3 flex flex-1 flex-col">
+          <h3
+            className="line-clamp-2 min-h-[2.6em] text-sm font-bold leading-snug text-neutral-900 transition-colors group-hover:text-[#E6003D]"
+            data-testid="product-title"
+          >
+            {name}
+          </h3>
+          {summary && (
+            <p className="mt-1 line-clamp-2 min-h-[2.5em] text-[11px] leading-4 text-neutral-600">
+              {summary}
+            </p>
+          )}
 
-            {/* Subtítulo de confianza rápida */}
-            <span className="inline-block mt-1 text-[11px] text-neutral-400 font-medium">
-              Stock Inmediato • Boleta / Factura
-            </span>
+          <div className="mt-2">
+            {availability === "available" ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Disponible
+              </span>
+            ) : availability === "order" ? (
+              <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800">
+                Bajo pedido
+              </span>
+            ) : (
+              <span className="inline-flex items-center rounded-full bg-neutral-100 px-2.5 py-1 text-[11px] font-semibold text-neutral-600">
+                Consultar disponibilidad
+              </span>
+            )}
           </div>
 
-          {/* Precio y Botón Visual */}
-          <div className="flex items-center justify-between pt-2.5 border-t border-neutral-100 mt-auto">
-            <div className="text-sm sm:text-base font-bold text-neutral-950">
+          <div className="mt-auto flex items-center justify-between gap-2 border-t border-neutral-100 pt-3">
+            <div className="min-w-0 text-sm font-extrabold text-neutral-950 sm:text-base">
               <PreviewPrice price={product.price} />
             </div>
-
-            <span className="inline-flex items-center justify-center p-2 rounded-lg bg-neutral-50 text-neutral-600 group-hover:bg-[#E31837] group-hover:text-white transition-colors duration-150">
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M14 5l7 7m0 0l-7 7m7-7H3"
-                />
+            <span
+              aria-hidden="true"
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-neutral-50 text-neutral-600 transition-colors group-hover:bg-[#E6003D] group-hover:text-white"
+            >
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </span>
           </div>
         </div>
-      </div>
+      </article>
     </LocalizedClientLink>
   )
 }
