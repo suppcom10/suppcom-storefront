@@ -1,13 +1,26 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import Image from "next/image"
 import type { TouchEvent } from "react"
+import Image from "next/image"
 import { HttpTypes } from "@medusajs/types"
 
 type ProductGalleryProps = {
   images: HttpTypes.StoreProductImage[]
   title: string
+}
+
+function isSuppcomBranded(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    return (
+      parsed.pathname.toLowerCase().includes("_suppcom") ||
+      parsed.hostname.endsWith(".r2.dev") ||
+      parsed.hostname === "imagenes.suppcom.pe"
+    )
+  } catch {
+    return url.toLowerCase().includes("_suppcom")
+  }
 }
 
 export default function ProductGallery({ images, title }: ProductGalleryProps) {
@@ -85,11 +98,13 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
 
   if (!photos.length) {
     return (
-      <div className="flex aspect-[5/4] items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50 p-6 text-center text-xs text-gray-500">
+      <div className="flex aspect-[5/4] items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50 p-6 text-xs text-gray-500">
         Imagen no disponible
       </div>
     )
   }
+
+  const branded = isSuppcomBranded(active.url)
 
   return (
     <>
@@ -113,39 +128,25 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
             priority={activeIndex === 0}
             quality={85}
             sizes="(max-width: 1024px) 100vw, 45vw"
-            className="object-contain p-1 transition-transform duration-300 scale-[1.32] group-hover:scale-[1.36]"
+            className={
+              branded
+                ? "object-contain p-1 transition-transform duration-300 scale-100 group-hover:scale-[1.02]"
+                : "object-contain p-1 transition-transform duration-300 scale-[1.12] group-hover:scale-[1.16]"
+            }
           />
         </button>
 
         {photos.length > 1 && (
           <>
-            <button
-              type="button"
-              onClick={previousImage}
-              aria-label="Imagen anterior"
-              className="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white/95 text-gray-700 shadow-sm transition-colors hover:text-[#E6003D]"
-            >
-              ‹
-            </button>
-            <button
-              type="button"
-              onClick={nextImage}
-              aria-label="Imagen siguiente"
-              className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white/95 text-gray-700 shadow-sm transition-colors hover:text-[#E6003D]"
-            >
-              ›
-            </button>
+            <button type="button" onClick={previousImage} aria-label="Imagen anterior" className="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white/95 text-gray-700 shadow-sm hover:text-[#E6003D]">‹</button>
+            <button type="button" onClick={nextImage} aria-label="Imagen siguiente" className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white/95 text-gray-700 shadow-sm hover:text-[#E6003D]">›</button>
           </>
         )}
 
         <span className="pointer-events-none absolute bottom-3 left-3 rounded-full border border-gray-200 bg-white/95 px-3 py-1 text-[11px] font-bold text-gray-700">
           {activeIndex + 1} / {photos.length}
         </span>
-        <button
-          type="button"
-          onClick={() => setZoomOpen(true)}
-          className="absolute bottom-3 right-3 rounded-full border border-gray-200 bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:text-[#E6003D]"
-        >
+        <button type="button" onClick={() => setZoomOpen(true)} className="absolute bottom-3 right-3 rounded-full border border-gray-200 bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:text-[#E6003D]">
           Ampliar ↗
         </button>
       </div>
@@ -183,50 +184,19 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
         >
           <div className="flex w-full max-w-6xl items-center justify-between gap-3 pb-3 text-white">
             <p className="max-w-[70%] truncate text-sm font-semibold">{title}</p>
-            <button
-              ref={closeButtonRef}
-              type="button"
-              onClick={closeZoom}
-              aria-label="Cerrar fotografía ampliada"
-              className="rounded-full bg-white/15 px-4 py-2 text-sm font-semibold transition-colors hover:bg-[#E6003D]"
-            >
+            <button ref={closeButtonRef} type="button" onClick={closeZoom} aria-label="Cerrar fotografía ampliada" className="rounded-full bg-white/15 px-4 py-2 text-sm font-semibold hover:bg-[#E6003D]">
               Cerrar ✕
             </button>
           </div>
-
-          {/* Clic sobre el fondo oscuro exterior cierra; clic sobre la foto conserva el visor */}
-          <div className="flex min-h-0 w-full flex-1 items-center justify-center" onMouseDown={(event) => {
-            if (event.target === event.currentTarget) closeZoom()
-          }}>
-            <div
-              className="relative h-full w-full max-w-5xl overflow-hidden bg-white"
-              onMouseDown={(event) => event.stopPropagation()}
-              onTouchStart={onTouchStart}
-              onTouchEnd={onTouchEnd}
-            >
-              <Image
-                src={active.url}
-                alt={`${title} - foto ${activeIndex + 1} ampliada`}
-                fill
-                quality={90}
-                sizes="100vw"
-                className="object-contain"
-              />
+          <div className="flex min-h-0 w-full flex-1 items-center justify-center" onMouseDown={(event) => { if (event.target === event.currentTarget) closeZoom() }}>
+            <div className="relative h-full w-full max-w-5xl overflow-hidden bg-white" onMouseDown={(event) => event.stopPropagation()} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+              <Image src={active.url} alt={`${title} - foto ${activeIndex + 1} ampliada`} fill quality={90} sizes="100vw" className="object-contain" />
             </div>
           </div>
-
           <div className="flex items-center justify-center gap-3 pt-3 text-white small:gap-5">
-            {photos.length > 1 && (
-              <button type="button" onClick={previousImage} aria-label="Foto anterior" className="rounded-full bg-white/15 px-4 py-2 text-sm hover:bg-white/25">
-                ← Anterior
-              </button>
-            )}
+            {photos.length > 1 && <button type="button" onClick={previousImage} aria-label="Foto anterior" className="rounded-full bg-white/15 px-4 py-2 text-sm hover:bg-white/25">← Anterior</button>}
             <span className="min-w-[65px] text-center text-xs">{activeIndex + 1} de {photos.length}</span>
-            {photos.length > 1 && (
-              <button type="button" onClick={nextImage} aria-label="Foto siguiente" className="rounded-full bg-white/15 px-4 py-2 text-sm hover:bg-white/25">
-                Siguiente →
-              </button>
-            )}
+            {photos.length > 1 && <button type="button" onClick={nextImage} aria-label="Foto siguiente" className="rounded-full bg-white/15 px-4 py-2 text-sm hover:bg-white/25">Siguiente →</button>}
           </div>
           <p className="pt-2 text-center text-[11px] text-gray-300">Esc para cerrar · ← → para navegar</p>
         </div>
