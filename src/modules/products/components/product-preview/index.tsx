@@ -2,6 +2,7 @@ import { HttpTypes } from "@medusajs/types"
 import LocalizedClientLink from "@modules/common/components/localized-client-link"
 import Thumbnail from "../thumbnail"
 import PreviewPrice from "./price"
+import { getProductPrice } from "@lib/util/get-product-price"
 
 function cleanCommercialTitle(product: HttpTypes.StoreProduct): string {
   const custom = product.metadata?.suppcom_title
@@ -56,6 +57,7 @@ export default async function ProductPreview({
   const name = cleanCommercialTitle(product)
   const summary = technicalSummary(product)
   const soldOut = isExplicitlySoldOut(product)
+  const price = getProductPrice({ product }).cheapestPrice
 
   return (
     <LocalizedClientLink
@@ -115,7 +117,9 @@ export default async function ProductPreview({
 
           <div className="mt-auto flex items-center justify-between gap-2 border-t border-neutral-100 pt-3">
             <div className="min-w-0 text-sm font-extrabold text-neutral-950 sm:text-base">
-              <PreviewPrice price={product.price} />
+              {price ? <PreviewPrice price={price} /> : (
+                <span className="text-xs font-medium text-neutral-500">Consultar precio</span>
+              )}
             </div>
             <span
               aria-hidden="true"
