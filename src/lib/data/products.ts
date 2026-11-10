@@ -7,8 +7,6 @@ import { SortOptions } from "@modules/store/components/refinement-list/sort-prod
 import { getAuthHeaders } from "./cookies"
 import { getRegion, retrieveRegion } from "./regions"
 
-const PRODUCT_REVALIDATE_SECONDS = 21600
-
 export const listProducts = async ({
   pageParam = 1,
   queryParams,
@@ -72,14 +70,13 @@ export const listProducts = async ({
     },
     headers,
     next: {
-      // Las fichas consultadas por handle deben reflejar enseguida los cambios de Media.
-      // Conservamos la caché de seis horas para las búsquedas del catálogo general.
-      revalidate: queryParams?.handle ? 0 : PRODUCT_REVALIDATE_SECONDS,
+      // SUPPCOM: catálogo actualizado al publicar nuevos productos en Medusa.
+      // Evitamos la caché anterior de seis horas.
+      revalidate: 0,
     },
   })
 
-  const nextPage =
-    count > offset + limit ? currentPage + 1 : null
+  const nextPage = count > offset + limit ? currentPage + 1 : null
 
   return {
     response: {
@@ -94,8 +91,6 @@ export const listProducts = async ({
 /**
  * Obtiene hasta 100 productos, los ordena y devuelve
  * la página solicitada.
- *
- * La revalidación de la consulta se controla en listProducts.
  */
 export const listProductsWithSort = async ({
   page = 1,
@@ -134,13 +129,9 @@ export const listProductsWithSort = async ({
   const startIndex = (currentPage - 1) * limit
   const endIndex = startIndex + limit
 
-  const paginatedProducts = sortedProducts.slice(
-    startIndex,
-    endIndex
-  )
+  const paginatedProducts = sortedProducts.slice(startIndex, endIndex)
 
-  const nextPage =
-    count > endIndex ? currentPage + 1 : null
+  const nextPage = count > endIndex ? currentPage + 1 : null
 
   return {
     response: {
