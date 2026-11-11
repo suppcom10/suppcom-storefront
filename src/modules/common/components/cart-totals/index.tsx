@@ -12,71 +12,46 @@ type CartTotalsProps = {
     item_subtotal?: number | null
     shipping_subtotal?: number | null
     discount_subtotal?: number | null
+    shipping_methods?: unknown[] | null
   }
 }
 
 const CartTotals: React.FC<CartTotalsProps> = ({ totals }) => {
-  const {
-    currency_code,
-    total,
-    tax_total,
-    item_subtotal,
-    shipping_subtotal,
-    discount_subtotal,
-  } = totals
-
+  const { currency_code, total, tax_total, item_subtotal, shipping_subtotal, discount_subtotal } = totals
+  const money = (amount: number) => convertToLocale({ amount, currency_code })
+  const hasShippingMethod = (totals.shipping_methods?.length ?? 0) > 0
   return (
     <div>
-      <div className="flex flex-col gap-y-2 txt-medium text-ui-fg-subtle ">
-        <div className="flex items-center justify-between">
-          <span>Subtotal (excl. shipping and taxes)</span>
-          <span data-testid="cart-subtotal" data-value={item_subtotal || 0}>
-            {convertToLocale({ amount: item_subtotal ?? 0, currency_code })}
-          </span>
+      <div className="flex flex-col gap-y-2 text-sm text-neutral-600">
+        <div className="flex items-center justify-between gap-3">
+          <span>Subtotal (sin envío ni IGV)</span>
+          <span data-testid="cart-subtotal" data-value={item_subtotal ?? 0} className="whitespace-nowrap">{money(item_subtotal ?? 0)}</span>
         </div>
-        <div className="flex items-center justify-between">
-          <span>Shipping</span>
-          <span data-testid="cart-shipping" data-value={shipping_subtotal || 0}>
-            {convertToLocale({ amount: shipping_subtotal ?? 0, currency_code })}
+        <div className="flex items-center justify-between gap-3">
+          <span>Envío</span>
+          <span data-testid="cart-shipping" data-value={shipping_subtotal ?? 0} className="text-right">
+            {hasShippingMethod ? (shipping_subtotal === 0 ? "Gratis" : money(shipping_subtotal ?? 0)) : "Por seleccionar"}
           </span>
         </div>
         {!!discount_subtotal && (
-          <div className="flex items-center justify-between">
-            <span>Discount</span>
-            <span
-              className="text-ui-fg-interactive"
-              data-testid="cart-discount"
-              data-value={discount_subtotal || 0}
-            >
-              -{" "}
-              {convertToLocale({
-                amount: discount_subtotal ?? 0,
-                currency_code,
-              })}
-            </span>
+          <div className="flex items-center justify-between gap-3">
+            <span>Descuento</span>
+            <span data-testid="cart-discount" data-value={discount_subtotal ?? 0}>- {money(discount_subtotal)}</span>
           </div>
         )}
-        <div className="flex justify-between">
-          <span className="flex gap-x-1 items-center ">Taxes</span>
-          <span data-testid="cart-taxes" data-value={tax_total || 0}>
-            {convertToLocale({ amount: tax_total ?? 0, currency_code })}
-          </span>
+        <div className="flex items-center justify-between gap-3">
+          <span>IGV</span>
+          <span data-testid="cart-taxes" data-value={tax_total ?? 0} className="whitespace-nowrap">{money(tax_total ?? 0)}</span>
         </div>
       </div>
-      <div className="h-px w-full border-b border-gray-200 my-4" />
-      <div className="flex items-center justify-between text-ui-fg-base mb-2 txt-medium ">
-        <span>Total</span>
-        <span
-          className="txt-xlarge-plus"
-          data-testid="cart-total"
-          data-value={total || 0}
-        >
-          {convertToLocale({ amount: total ?? 0, currency_code })}
-        </span>
+      <div className="my-4 h-px w-full bg-neutral-200" />
+      <div className="flex items-center justify-between gap-3 text-neutral-950">
+        <span className="font-semibold">Total</span>
+        <span className="text-xl font-extrabold tabular-nums" data-testid="cart-total" data-value={total ?? 0}>{money(total ?? 0)}</span>
       </div>
-      <div className="h-px w-full border-b border-gray-200 mt-4" />
+      {!hasShippingMethod && <p className="mt-2 text-xs text-neutral-500">El costo de envío se confirma al elegir la modalidad de entrega.</p>}
+      <div className="mt-4 h-px w-full bg-neutral-200" />
     </div>
   )
 }
-
 export default CartTotals
