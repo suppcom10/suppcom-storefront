@@ -189,7 +189,7 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
             </button>
           </div>
           <div className="flex min-h-0 w-full flex-1 items-center justify-center" onMouseDown={(event) => { if (event.target === event.currentTarget) closeZoom() }}>
-            <div className="relative h-full w-full max-w-5xl overflow-hidden bg-white" onMouseDown={(event) => event.stopPropagation()} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+            <div className="relative max-h-full max-w-full overflow-hidden bg-white" style={{ width: "min(100%, calc(100dvh - 165px))", aspectRatio: "1 / 1" }} onMouseDown={(event) => event.stopPropagation()} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
               <Image src={active.url} alt={`${title} - foto ${activeIndex + 1} ampliada`} fill quality={90} sizes="100vw" className="object-contain" />
             </div>
           </div>
