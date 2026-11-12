@@ -1,63 +1,11 @@
 import { HttpTypes } from "@medusajs/types"
 import { Text } from "@medusajs/ui"
-
-type OrderDetailsProps = {
-  order: HttpTypes.StoreOrder
-  showStatus?: boolean
-}
-
-const OrderDetails = ({ order, showStatus }: OrderDetailsProps) => {
-  const formatStatus = (str: string) => {
-    const formatted = str.split("_").join(" ")
-
-    return formatted.slice(0, 1).toUpperCase() + formatted.slice(1)
-  }
-
-  return (
-    <div>
-      <Text>
-        We have sent the order confirmation details to{" "}
-        <span
-          className="text-ui-fg-medium-plus font-semibold"
-          data-testid="order-email"
-        >
-          {order.email}
-        </span>
-        .
-      </Text>
-      <Text className="mt-2">
-        Order date:{" "}
-        <span data-testid="order-date">
-          {new Date(order.created_at).toDateString()}
-        </span>
-      </Text>
-      <Text className="mt-2 text-ui-fg-interactive">
-        Order number: <span data-testid="order-id">{order.display_id}</span>
-      </Text>
-
-      <div className="flex items-center text-compact-small gap-x-4 mt-4">
-        {showStatus && (
-          <>
-            <Text>
-              Order status:{" "}
-              <span className="text-ui-fg-subtle " data-testid="order-status">
-                {formatStatus(order.fulfillment_status)}
-              </span>
-            </Text>
-            <Text>
-              Payment status:{" "}
-              <span
-                className="text-ui-fg-subtle "
-                sata-testid="order-payment-status"
-              >
-                {formatStatus(order.payment_status)}
-              </span>
-            </Text>
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
-
+type Props={order:HttpTypes.StoreOrder,showStatus?:boolean}
+const labels:Record<string,string>={not_fulfilled:"Pendiente de preparación",fulfilled:"Entregado a transporte",canceled:"Cancelado",authorized:"Pago por verificar",captured:"Pago registrado",not_paid:"Pago pendiente",awaiting:"Pendiente"}
+const OrderDetails=({order,showStatus}:Props)=> <div className="text-sm text-neutral-600">
+  <Text>Correo de contacto: <strong data-testid="order-email">{order.email}</strong></Text>
+  <Text className="mt-2">Fecha del pedido: <span data-testid="order-date">{new Date(order.created_at).toLocaleDateString("es-PE",{year:"numeric",month:"long",day:"numeric"})}</span></Text>
+  <Text className="mt-2 font-semibold text-[#E6003D]">Número de pedido: <span data-testid="order-id">#{order.display_id}</span></Text>
+  {showStatus&&<div className="mt-3 space-y-1"><Text>Preparación: <span data-testid="order-status">{labels[order.fulfillment_status]||order.fulfillment_status}</span></Text><Text>Pago: <span data-testid="order-payment-status">{labels[order.payment_status]||order.payment_status}</span></Text></div>}
+</div>
 export default OrderDetails
