@@ -1,63 +1,23 @@
-import { Container, Heading, Text } from "@medusajs/ui"
-
-import { isStripeLike, paymentInfoMap } from "@lib/constants"
+import { Heading, Text } from "@medusajs/ui"
+import { isManual, isStripeLike, paymentInfoMap } from "@lib/constants"
 import Divider from "@modules/common/components/divider"
 import { convertToLocale } from "@lib/util/money"
 import { HttpTypes } from "@medusajs/types"
-
-type PaymentDetailsProps = {
-  order: HttpTypes.StoreOrder
+type Props={order:HttpTypes.StoreOrder}
+const PaymentDetails=({order}:Props)=>{
+  const payment=order.payment_collections?.[0]?.payments?.[0]
+  const provider=payment?.provider_id||""
+  const manual=isManual(provider)
+  const captured=order.payment_status==="captured" || order.payment_status==="partially_captured"
+  const fullyPaid=order.payment_status==="captured"
+  return <section>
+    <Heading level="h2" className="my-6 text-2xl font-bold">Pago</Heading>
+    <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+      <Text className="mb-1 text-sm font-semibold">Método: {manual?"Pago manual (sujeto a verificación)":paymentInfoMap[provider]?.title||"Método de pago"}</Text>
+      {manual ? <Text className="text-sm text-neutral-600">{fullyPaid?"Pago registrado por SUPPCOM.":captured?"Pago registrado parcialmente. SUPPCOM confirmará el saldo.":"Pago pendiente de verificación. No realices envíos ni consideres este pedido pagado hasta confirmar el abono."}</Text> : <Text className="text-sm text-neutral-600">{fullyPaid?"Pago registrado.":"Estado del pago pendiente de confirmación."}</Text>}
+      {payment&&<Text className="mt-2 text-sm text-neutral-600">Importe del pedido: {convertToLocale({amount:order.total,currency_code:order.currency_code})}</Text>}
+      {isStripeLike(provider)&&payment?.data?.card_last4&&<Text className="text-sm text-neutral-600">Tarjeta terminada en {String(payment.data.card_last4)}</Text>}
+    </div><Divider className="mt-8"/>
+  </section>
 }
-
-const PaymentDetails = ({ order }: PaymentDetailsProps) => {
-  const payment = order.payment_collections?.[0].payments?.[0]
-
-  return (
-    <div>
-      <Heading level="h2" className="flex flex-row text-3xl-regular my-6">
-        Payment
-      </Heading>
-      <div>
-        {payment && (
-          <div className="flex items-start gap-x-1 w-full">
-            <div className="flex flex-col w-1/3">
-              <Text className="txt-medium-plus text-ui-fg-base mb-1">
-                Payment method
-              </Text>
-              <Text
-                className="txt-medium text-ui-fg-subtle"
-                data-testid="payment-method"
-              >
-                {paymentInfoMap[payment.provider_id].title}
-              </Text>
-            </div>
-            <div className="flex flex-col w-2/3">
-              <Text className="txt-medium-plus text-ui-fg-base mb-1">
-                Payment details
-              </Text>
-              <div className="flex gap-2 txt-medium text-ui-fg-subtle items-center">
-                <Container className="flex items-center h-7 w-fit p-2 bg-ui-button-neutral-hover">
-                  {paymentInfoMap[payment.provider_id].icon}
-                </Container>
-                <Text data-testid="payment-amount">
-                  {isStripeLike(payment.provider_id) && payment.data?.card_last4
-                    ? `**** **** **** ${payment.data.card_last4}`
-                    : `${convertToLocale({
-                        amount: payment.amount,
-                        currency_code: order.currency_code,
-                      })} paid at ${new Date(
-                        payment.created_at ?? ""
-                      ).toLocaleString()}`}
-                </Text>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <Divider className="mt-8" />
-    </div>
-  )
-}
-
 export default PaymentDetails
