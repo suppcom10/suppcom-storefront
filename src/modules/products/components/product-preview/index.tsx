@@ -4,6 +4,26 @@ import Thumbnail from "../thumbnail"
 import PreviewPrice from "./price"
 import { getProductPrice } from "@lib/util/get-product-price"
 
+// Approved storefront copy keyed by the existing catalog handles.
+const campaignCardCopy: ReadonlyMap<string, { title: string; summary: string }> = new Map([
+  ["hp-zbook-x-u7356h-32-1-v6-w11p-nbwhpdk9v8ltabm", {
+    title: 'HP ZBook X 16"',
+    summary: "Core Ultra 7 356H · 32GB RAM · 1TB SSD",
+  }],
+  ["nb-14-eb6g2i-u7355-16-512-w11p-nbhpdj2z8at", {
+    title: 'HP Laptop 14" 16GB',
+    summary: "Core Ultra 7 355 · 512GB SSD",
+  }],
+  ["nb-14-eb8g2i-u7355-32-512-w11p-nbhpdj1l0at", {
+    title: 'HP Laptop 14" 32GB',
+    summary: "Core Ultra 7 355 · 512GB SSD",
+  }],
+  ["hp-zbook8-u7-255h-16-512-v4-wp-nbwhpdm4h4ltabm", {
+    title: "HP ZBook 8",
+    summary: "Core Ultra 7 255H · 16GB RAM · 512GB SSD",
+  }],
+])
+
 function cleanCommercialTitle(product: HttpTypes.StoreProduct): string {
   const custom = product.metadata?.suppcom_title
   if (typeof custom === "string" && custom.trim()) return custom.trim()
@@ -54,8 +74,9 @@ export default async function ProductPreview({
   isFeatured?: boolean
   region: HttpTypes.StoreRegion
 }) {
-  const name = cleanCommercialTitle(product)
-  const summary = technicalSummary(product)
+  const campaign = campaignCardCopy.get(product.handle ?? "")
+  const name = campaign?.title ?? cleanCommercialTitle(product)
+  const summary = campaign?.summary ?? technicalSummary(product)
   const soldOut = isExplicitlySoldOut(product)
   const price = getProductPrice({ product }).cheapestPrice
 

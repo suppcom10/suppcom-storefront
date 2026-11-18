@@ -118,7 +118,7 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
           type="button"
           onClick={() => setZoomOpen(true)}
           aria-label="Ampliar fotografía del producto"
-          className="relative block aspect-[5/4] w-full cursor-zoom-in overflow-hidden"
+          className="relative block aspect-square w-full cursor-zoom-in overflow-hidden small:aspect-[5/4]"
         >
           <Image
             key={active.id || active.url}
@@ -130,8 +130,8 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
             sizes="(max-width: 1024px) 100vw, 45vw"
             className={
               branded
-                ? "object-contain p-1 transition-transform duration-300 scale-100 group-hover:scale-[1.02]"
-                : "object-contain p-1 transition-transform duration-300 scale-[1.12] group-hover:scale-[1.16]"
+                ? "object-contain p-2 transition-transform duration-300 group-hover:scale-[1.01]"
+                : "object-contain p-2 transition-transform duration-300 group-hover:scale-[1.06]"
             }
           />
         </button>
@@ -143,12 +143,15 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
           </>
         )}
 
-        <span className="pointer-events-none absolute bottom-3 left-3 rounded-full border border-gray-200 bg-white/95 px-3 py-1 text-[11px] font-bold text-gray-700">
-          {activeIndex + 1} / {photos.length}
-        </span>
-        <button type="button" onClick={() => setZoomOpen(true)} className="absolute bottom-3 right-3 rounded-full border border-gray-200 bg-white/95 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:text-[#E6003D]">
-          Ampliar ↗
-        </button>
+        {/* Barra de controles separada de la fotografía: no tapa el logo ni el degradado. */}
+        <div className="flex items-center justify-between gap-3 border-t border-gray-100 bg-white px-3 py-2.5">
+          <span className="rounded-full border border-gray-200 bg-white px-3 py-1 text-[11px] font-bold text-gray-700">
+            {activeIndex + 1} / {photos.length}
+          </span>
+          <button type="button" onClick={() => setZoomOpen(true)} className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:text-[#E6003D]">
+            Ampliar ↗
+          </button>
+        </div>
       </div>
 
       {photos.length > 1 && (
@@ -198,7 +201,7 @@ export default function ProductGallery({ images, title }: ProductGalleryProps) {
             <span className="min-w-[65px] text-center text-xs">{activeIndex + 1} de {photos.length}</span>
             {photos.length > 1 && <button type="button" onClick={nextImage} aria-label="Foto siguiente" className="rounded-full bg-white/15 px-4 py-2 text-sm hover:bg-white/25">Siguiente →</button>}
           </div>
-          <p className="pt-2 text-center text-[11px] text-gray-300">Esc para cerrar · ← → para navegar</p>
+          <p className="hidden pt-2 text-center text-[11px] text-gray-300 small:block">Esc para cerrar · ← → para navegar</p>
         </div>
       )}
     </>
