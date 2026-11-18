@@ -4,63 +4,37 @@ import Thumbnail from "../thumbnail"
 import PreviewPrice from "./price"
 import { getProductPrice } from "@lib/util/get-product-price"
 
-function campaignCardCopy(product: HttpTypes.StoreProduct) {
-  const title = product.title?.trim() ?? ""
-  const specs = [title, product.description, product.metadata?.suppcom_short_specs]
-    .filter((value): value is string => typeof value === "string")
-    .join(" ")
+// Approved storefront copy keyed by the existing catalog handles.
+const campaignCardCopy: ReadonlyMap<string, { title: string; summary: string }> = new Map([
+  ["hp-zbook-x-u7356h-32-1-v6-w11p-nbwhpdk9v8ltabm", {
+    title: 'HP ZBook X 16"',
+    summary: "Core Ultra 7 356H · 32GB RAM · 1TB SSD",
+  }],
+  ["nb-14-eb6g2i-u7355-16-512-w11p-nbhpdj2z8at", {
+    title: 'HP Laptop 14" 16GB',
+    summary: "Core Ultra 7 355 · 512GB SSD",
+  }],
+  ["nb-14-eb8g2i-u7355-32-512-w11p-nbhpdj1l0at", {
+    title: 'HP Laptop 14" 32GB',
+    summary: "Core Ultra 7 355 · 512GB SSD",
+  }],
+  ["hp-zbook8-u7-255h-16-512-v4-wp-nbwhpdm4h4ltabm", {
+    title: "HP ZBook 8",
+    summary: "Core Ultra 7 255H · 16GB RAM · 512GB SSD",
+  }],
+])
 
-  if (/^(?:HP\s+)?ZBook\s*X\b/i.test(title)) {
-    if (/^(?:HP\s+)?ZBook\s*X$/i.test(title) || /\b(?:U\s*7[\s-]*|Ultra\s+7\s+)356H\b/i.test(specs)) {
-      return {
-        title: 'HP ZBook X 16"',
-        summary: "Core Ultra 7 356H · 32GB RAM · 1TB SSD",
-      }
-    }
-  }
-
-  if (/^(?:HP\s+)?ZBook\s*8\b/i.test(title)) {
-    if (/^(?:HP\s+)?ZBook\s*8$/i.test(title) || /\b(?:U\s*7[\s-]*|Ultra\s+7\s+)255H\b/i.test(specs)) {
-      return {
-        title: "HP ZBook 8",
-        summary: "Core Ultra 7 255H · 16GB RAM · 512GB SSD",
-      }
-    }
-  }
-
-  if (!/^(?:HP\s+)?(?:NB|Laptop)\s+14\s+EB[68]\s*G2I\b/i.test(title)) {
-    return
-  }
-
-  const compactSpecs = specs.match(/\b(?:U\s*7[\s-]*|Ultra\s+7\s+)355\s*\/\s*(16|32)\s*(?:GB)?\s*\/\s*512\b/i)
-  const readableSpecs = /\b(?:U\s*7[\s-]*|Ultra\s+7\s+)355\b/i.test(specs)
-    && /\b512\s*GB\s*(?:SSD|NVMe)\b/i.test(specs)
-  const has16GB = /\b16\s*GB\s*(?:RAM|LPDDR\w*|DDR[345])\b/i.test(specs)
-  const has32GB = /\b32\s*GB\s*(?:RAM|LPDDR\w*|DDR[345])\b/i.test(specs)
-  const ram = compactSpecs?.[1]
-    ?? (readableSpecs && has16GB !== has32GB ? (has16GB ? "16" : "32") : undefined)
-
-  if (ram) {
-    return {
-      title: `HP Laptop 14" ${ram}GB`,
-      summary: "Core Ultra 7 355 · 512GB SSD",
-    }
-  }
-}
-
-function cleanCommercialTitle(product: HttpTypes.StoreProduct, campaignTitle?: string): string {
+function cleanCommercialTitle(product: HttpTypes.StoreProduct): string {
   const custom = product.metadata?.suppcom_title
   if (typeof custom === "string" && custom.trim()) return custom.trim()
-  if (campaignTitle) return campaignTitle
 
   const raw = (product.title || "Producto SUPPCOM").trim()
   return raw.split("/")[0].trim() || raw
 }
 
-function technicalSummary(product: HttpTypes.StoreProduct, campaignSummary?: string): string {
+function technicalSummary(product: HttpTypes.StoreProduct): string {
   const custom = product.metadata?.suppcom_short_specs
   if (typeof custom === "string" && custom.trim()) return custom.trim()
-  if (campaignSummary) return campaignSummary
 
   const text = [product.title, product.description]
     .filter(Boolean)
@@ -100,9 +74,9 @@ export default async function ProductPreview({
   isFeatured?: boolean
   region: HttpTypes.StoreRegion
 }) {
-  const campaign = campaignCardCopy(product)
-  const name = cleanCommercialTitle(product, campaign?.title)
-  const summary = technicalSummary(product, campaign?.summary)
+  const campaign = campaignCardCopy.get(product.handle ?? "")
+  const name = campaign?.title ?? cleanCommercialTitle(product)
+  const summary = campaign?.summary ?? technicalSummary(product)
   const soldOut = isExplicitlySoldOut(product)
   const price = getProductPrice({ product }).cheapestPrice
 
